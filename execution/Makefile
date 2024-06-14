@@ -1,37 +1,38 @@
-NAME	:= builtin
+# Variables
+CC = gcc
+CFLAGS = -Wall -Wextra -Werror
+LIBFT = ./libft/libft.a
+LIBS = -lreadline
 
-LIBFT	:= libft
-INCLUDES := #-I $(LIBFT)
-# INCLUDES := -I /libft/libft.h
-LIBFT_LIB	:= $(LIBFT)/libft.a
-SRCS	:= get_path.c execute.c
-OBJS	:= ${SRCS:.c=.o}
+# Executable
+NAME = minishell
 
-# CFLAGS	:= -Wextra -Wall -Werror -g
+# Source Files
+SRC = main.c get_path.c execute.c expand.c
 
-all:  $(NAME)
+# Object Files
+OBJ = $(SRC:.c=.o)
 
+# Rules
+all: $(NAME)
 
-libmake:
-	$(MAKE) -C $(LIBFT)
-
+$(NAME): $(OBJ) $(LIBFT)
+	$(CC) $(CFLAGS) -o $@ $(OBJ) $(LIBFT) $(LIBS)
 
 %.o: %.c
-	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES) && printf "Compiling: $(notdir $<)"
+	$(CC) $(CFLAGS) -c $< -o $@
 
-$(NAME): libmake $(OBJS)
-	$(CC) $(OBJS) -Llibft -lft $(LIBS)  $(INCLUDES) -o $(NAME)
-
-
+$(LIBFT):
+	$(MAKE) -C ./libft
 
 clean:
-	@rm -rf $(OBJS)
-	@rm -rf $(LIBFT)/*.o
+	$(RM) $(OBJ)
+	$(MAKE) -C ./libft clean
 
 fclean: clean
-	@rm -rf $(NAME)
-	@rm -rf $(LIBFT)/*.a
+	$(RM) $(NAME)
+	$(MAKE) -C ./libft fclean
 
-re: clean all
+re: fclean all
 
-.PHONY: all, clean, fclean, re
+.PHONY: all clean fclean re
