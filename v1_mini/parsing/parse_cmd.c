@@ -8,6 +8,6 @@ void parse_cmd(char **input, Token **tokens) {
         add_token(tokens, TOKEN_SEMICOLON, ";");
         (*input)++;
     } else {
-        parse_args(input, tokens); // Call to parse_args
+        parse_args(input, tokens, true); // First token is the command
     }
 }

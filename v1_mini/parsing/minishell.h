@@ -66,7 +66,7 @@ void execute_commands(ShellInfo *info);
 char *get_executable_path(char **env, char *cmd);
 
 void add_token(Token **tokens, TokenType type, const char *value);
-void parse_args(char **input, Token **tokens);
+void parse_args(char **input, Token **tokens, bool is_command);
 void parse_pipe(char **input, Token **tokens);
 void parse_sep(char **input, Token **tokens);
 void parse_redir(char **input, Token **tokens);
