@@ -3,7 +3,7 @@
 // Function to print tokens for testing
 void print_tokens(Token *tokens) {
     while (tokens) {
-        printf("Type: %d, Value: %s\n", tokens->type, tokens->value);
+        printf("%s: %s\n", token_type_to_string(tokens->type), tokens->value);
         tokens = tokens->next;
     }
 }

@@ -1,4 +1,29 @@
-#include "minishell.h"
+#include "parsing/minishell.h"
+
+
+
+const char *token_type_to_string(TokenType type) {
+    switch (type) {
+        case TOKEN_AND: return "TOKEN_AND";
+        case TOKEN_OR: return "TOKEN_OR";
+        case TOKEN_SEMICOLON: return "TOKEN_SEMICOLON";
+        case TOKEN_REDIRECT_LEFT: return "TOKEN_REDIRECT_LEFT";
+        case TOKEN_REDIRECT_RIGHT: return "TOKEN_REDIRECT_RIGHT";
+        case TOKEN_DOUBLE_REDIRECT_LEFT: return "TOKEN_DOUBLE_REDIRECT_LEFT";
+        case TOKEN_DOUBLE_REDIRECT_RIGHT: return "TOKEN_DOUBLE_REDIRECT_RIGHT";
+        case TOKEN_PIPELINE: return "TOKEN_PIPELINE";
+        case TOKEN_COMMAND: return "TOKEN_COMMAND";
+        case TOKEN_OPTION: return "TOKEN_OPTION";
+        case TOKEN_SINGLE_QUOTE: return "TOKEN_SINGLE_QUOTE";
+        case TOKEN_DOUBLE_QUOTE: return "TOKEN_DOUBLE_QUOTE";
+        case TOKEN_BACKSLASH: return "TOKEN_BACKSLASH";
+        case TOKEN_LITERAL: return "TOKEN_LITERAL";
+        case TOKEN_VARIABLE: return "TOKEN_VARIABLE";
+        case TOKEN_SPACE: return "TOKEN_SPACE";
+        case TOKEN_ERROR: return "TOKEN_ERROR";
+        default: return "UNKNOWN_TOKEN";
+    }
+}
 
 // Function to create a new token
 Token *create_token(TokenType type, const char *value) {

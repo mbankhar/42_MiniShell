@@ -73,5 +73,7 @@ void parse_redir(char **input, Token **tokens);
 void parse_options(char *input, Token **tokens);
 void parse_d_quotes(char **input, Token **tokens);
 void parse_varenv(char **input, Token **tokens);
+const char *token_type_to_string(TokenType type);
+
 
 #endif
