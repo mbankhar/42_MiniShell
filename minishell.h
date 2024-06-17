@@ -1,0 +1,45 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   minishell.h                                        :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
+/*   Updated: 2024/06/16 15:59:16 by mbankhar         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef MINISHELL_H
+# define MINISHELL_H
+
+# include "./libft/libft.h"
+# include <fcntl.h>
+# include <limits.h>
+# include <stdbool.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <sys/types.h>
+# include <unistd.h>
+# include <string.h>
+# include <sys/wait.h>
+# include <readline/readline.h>
+# include <readline/history.h>
+# include <ctype.h>
+
+typedef struct s_exec
+{
+	int			fd_in;
+	int			fd_out;
+	int			number_of_pipes;
+	char		**commands;
+}			t_exec;
+
+char	*altpath(char **env, char *cmd, int i);
+char	*get_path(char **env, char *cmd);
+void	ft_free(char **array);
+int		execution(void);
+int		count_char_occurrences(const char *str, char ch);
+int		are_quotes_even(const char *str);
+
+#endif
