@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/17 14:09:16 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/17 19:46:43 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,65 @@
 
 #define MAX_INPUT_SIZE 1024
 #define MAX_ARG_SIZE 100
+
+#include <stdlib.h>
+#include <string.h>
+
+char	**get_the_token(char **commands, t_exec *exec)
+{
+	int		i;
+	int		cmd_count;
+	char	**filtered_commands;
+	int		skip_next;
+	int		j;
+	int		k;
+
+	i = 0;
+	cmd_count = 0;
+	filtered_commands = NULL;
+	skip_next = 0;
+	while (commands[i])
+	{
+		if (skip_next)
+			skip_next = 0;
+		else if (strcmp(commands[i], "<") == 0 || strcmp(commands[i], ">") == 0)
+			skip_next = 1;
+		else if (strcmp(commands[i], "|") != 0)
+			cmd_count++;
+		i++;
+	}
+	filtered_commands = (char **)malloc((cmd_count + 1) * sizeof(char *));
+	if (!filtered_commands)
+		return (NULL);
+	i = 0;
+	j = 0;
+	skip_next = 0;
+	while (commands[i])
+	{
+		if (skip_next)
+			skip_next = 0;
+		else if (strcmp(commands[i], "<") == 0 || strcmp(commands[i], ">") == 0)
+			skip_next = 1;
+		else if (strcmp(commands[i], "|") != 0)
+		{
+			filtered_commands[j] = strdup(commands[i]);
+			if (!filtered_commands[j])
+			{
+				k = -1;
+				while (++k < j)
+				{
+					free(filtered_commands[k]);
+				}
+				free(filtered_commands);
+				return (NULL);
+			}
+			j++;
+		}
+		i++;
+	}
+	filtered_commands[j] = NULL;
+	return (filtered_commands);
+}
 
 char	*get_env_value(char **environ, const char *var)
 {
@@ -103,16 +162,19 @@ void	check_the_line(char *line, t_exec *exec)
 		exec->commands = ft_split(line, ' ');
 		look_for_redirect(exec->commands, exec);
 		check_dollar(exec->commands, exec);
+		exec->tokens = get_the_token(exec->commands, exec);
 		int	i	= -1;
 		while (exec->commands[++i])
 			printf("%s\n", exec->commands[i]);
+		i	= -1;
+		while (exec->tokens[++i])
+			printf("%s\n", exec->tokens[i]);
 	}
 	else
 	{
 		printf("Quotes error\n");
 	}
 }
-
 
 int	main(int argc, char **argv, char **envp)
 {
@@ -138,7 +200,6 @@ int	main(int argc, char **argv, char **envp)
 		}
 		free(line);
 	}
-
 	return (0);
 }
 

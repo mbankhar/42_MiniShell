@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/16 15:59:16 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/17 19:21:48 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ typedef struct s_exec
 	int			fd_out;
 	int			number_of_pipes;
 	char		**commands;
+	char		**tokens;
 }			t_exec;
 
 char	*altpath(char **env, char *cmd, int i);
