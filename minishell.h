@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/18 12:22:54 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/18 16:56:15 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@ typedef struct s_exec
 	char		**commands;
 	char		**tokens;
 	int			num_commands;
+	char		**commands_parsed;
 }			t_exec;
 
 char	*altpath(char **env, char *cmd, int i);

@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/18 12:30:29 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/18 17:07:24 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,10 @@ void	execute(char **env, char *cmd)
 
 	cmd_args = ft_split(cmd, ' ');
 	path_cmd = get_pathasd(env, cmd_args[0]);
+	// printf("%s\n", path_cmd);
+	// printf("%s\n", cmd_args[0]);
+	// printf("%s\n", cmd_args[1]);
+	// exit(1);
 	if (execve(path_cmd, cmd_args, env) == -1)
 	{
 		perror("execve");

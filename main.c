@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/18 12:51:38 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/18 17:01:43 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,95 @@
 #define MAX_INPUT_SIZE 1024
 #define MAX_ARG_SIZE 100
 
+// Function prototypes
+char** parse_commands(const char* input, int* count);
+int is_redirection(const char* token);
+
+
+char** parse_commands(const char* input, int* count) {
+    char* input_copy = strdup(input); // Make a modifiable copy of the input
+    char* token;
+    char** result = NULL;
+    int num_commands = 0;
+    int within_quotes = 0;
+    int is_last_token_redirection = 0;
+    size_t command_length = 0;
+
+    // Allocate initial memory for result array
+    result = malloc(sizeof(char*));
+    result[0] = malloc(1);
+    result[0][0] = '\0';
+
+    // Tokenize based on spaces to handle each element
+    token = strtok(input_copy, " ");
+    while (token != NULL) {
+        // Check if token contains quotes
+        if (strchr(token, '\"') != NULL) {
+            within_quotes = !within_quotes;
+        }
+
+        // If the previous token was a redirection operator, skip this token
+        if (is_last_token_redirection) {
+            is_last_token_redirection = 0;
+            token = strtok(NULL, " ");
+            continue;
+        }
+
+        // If the token is a redirection operator, skip it and the next token
+        if (is_redirection(token)) {
+            is_last_token_redirection = 1;
+            token = strtok(NULL, " ");
+            continue;
+        }
+
+        // Calculate the required length for the command
+        command_length = strlen(result[num_commands]) + strlen(token) + 2;
+
+        // Reallocate memory for the current command
+        result[num_commands] = realloc(result[num_commands], command_length);
+
+        // Append token to the last command in result array
+        if (within_quotes || strchr(token, '|') == NULL) {
+            if (result[num_commands][0] != '\0') {
+                strcat(result[num_commands], " ");
+            }
+            strcat(result[num_commands], token);
+        } else {
+            // Split by pipe and start a new command
+            num_commands++;
+            result = realloc(result, (num_commands + 1) * sizeof(char*));
+            result[num_commands] = malloc(strlen(token) + 1);
+            strcpy(result[num_commands], token + 1); // Skip the pipe character
+        }
+
+        token = strtok(NULL, " ");
+    }
+
+    // Trim leading spaces from each command
+    for (int i = 0; i <= num_commands; i++) {
+        char* cmd = result[i];
+        while (*cmd == ' ') cmd++;
+        memmove(result[i], cmd, strlen(cmd) + 1);
+    }
+
+    free(input_copy);
+    *count = num_commands + 1;
+    return result;
+}
+
+int is_redirection(const char* token) {
+    return (strcmp(token, "<") == 0 || strcmp(token, ">") == 0 || 
+            strcmp(token, "<<") == 0 || strcmp(token, ">>") == 0);
+}
 
 
 void	check_the_line(char *line, t_exec *exec)
 {
 	int			i;
+	int			count;
 	extern char	**environ;
 
+	count = 0;
 	if (are_quotes_even(line) != 0)
 	{
 		exec->number_of_pipes = count_char_occurrences(line, '|');
@@ -31,14 +113,15 @@ void	check_the_line(char *line, t_exec *exec)
 		exec->tokens = get_the_token(exec->commands, exec);
 		exec->num_commands = 0;
 		exec->num_commands = get_token_number(exec->tokens, environ);
+		exec->commands_parsed = parse_commands(line, &count);
 		// i = -1;
-		// while (exec->commands[++i])
-		// 	printf("%s\n", exec->commands[i]);
+		// while (exec->commands_parsed[++i])
+		// 	printf("%s\n", exec->commands_parsed[i]);
 		// i = -1;
 		// while (exec->tokens[++i])
 		// 	printf("%s\n", exec->tokens[i]);
 		// exit(1);
-		execution(exec->tokens, environ, exec);
+		execution(exec->commands_parsed, environ, exec);
 	}
 	else
 	{

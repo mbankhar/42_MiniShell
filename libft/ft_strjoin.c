@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/11 13:04:24 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/03/11 16:19:07 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/18 14:41:16 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,10 +39,3 @@ char	*ft_strjoin(char const *s1, char const *s2)
 	new_string[i] = '\0';
 	return (new_string);
 }
-
-// int main()
-// {
-// 	char *string1 = "Hello";
-// 	char *string2 = " World";
-// 	printf("%s", ft_strjoin(string1, string2));
-// }

@@ -6,137 +6,105 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 11:03:12 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/18 11:52:11 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/18 16:54:20 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
-// Placeholder functions to be replaced with actual implementations
-char **ft_split(const char *str, char delimiter);
-char *ft_substr(const char *str, unsigned int start, size_t len);
-char *ft_strjoinslesh(const char *s1, const char *s2);
-void ft_free(char **strs);
+// Function prototypes
+char** parse_commands(const char* input, int* count);
+int is_redirection(const char* token);
 
-char *altpath(char **env, char *cmd, int i) {
-    char **realpath;
-    char *string = NULL;
-
-    realpath = ft_split(env[i], ':');
-    realpath[0] = ft_substr(realpath[0], 5, strlen(realpath[0]) - 5);
-    if (realpath[0] == NULL) {
-        ft_free(realpath);
-        return NULL;
-    }
-    i = -1;
-    while (realpath[++i]) {
-        string = ft_strjoinslesh(realpath[i], cmd);
-        if (string == NULL) {
-            ft_free(realpath);
-            return NULL;
-        }
-        if (access(string, X_OK) == 0)
-            break;
-        free(string);
-        string = NULL;
-    }
-    ft_free(realpath);
-    return string;
-}
-
-char *get_path(char **env, char *cmd) {
-    int i = 0;
-    char *string;
-
-    while (env[i]) {
-        if (strncmp(env[i], "PATH=", 5) == 0) {
-            break;
-        }
-        i++;
-    }
-    if (env[i] == NULL) {
-        string = strdup(cmd);
-        if (access(string, X_OK) != 0) {
-            free(string);
-            return NULL;
-        }
-    } else {
-        string = altpath(env, cmd, i);
-    }
-    return string;
-}
-
-int get_token_number(char **tokens, char **env) {
+int main() {
+    const char* input = "< out ls | grep \"hello world\" | wc -l < out";
     int count = 0;
-    char *path;
+    char** commands = parse_commands(input, &count);
 
-    for (int i = 0; tokens[i] != NULL; i++) {
-        path = get_path(env, tokens[i]);
-        if (path != NULL) {
-            count++;
-            free(path);
-        }
+    // Print the result
+    for (int i = 0; i < count; i++) {
+        printf("Command %d: %s\n", i + 1, commands[i]);
+        free(commands[i]);
     }
-    return count;
-}
+    free(commands);
 
-int main(int argc, char *argv[], char *envp[]) {
-    // Example input tokens
-    char *tokens[] = {"null", NULL};
-    int count = get_token_number(tokens, envp);
-    printf("Number of valid commands: %d\n", count);
     return 0;
 }
 
-// Example implementations for custom functions
-char **ft_split(const char *str, char delimiter) {
-    char **result;
-    int count = 1;
-    for (const char *temp = str; *temp; temp++) {
-        if (*temp == delimiter) count++;
-    }
-    result = malloc((count + 1) * sizeof(char *));
-    int index = 0;
-    const char *start = str;
-    for (const char *temp = str; *temp; temp++) {
-        if (*temp == delimiter) {
-            int length = temp - start;
-            result[index] = strndup(start, length);
-            index++;
-            start = temp + 1;
+char** parse_commands(const char* input, int* count) {
+    char* input_copy = strdup(input); // Make a modifiable copy of the input
+    char* token;
+    char** result = NULL;
+    int num_commands = 0;
+    int within_quotes = 0;
+    int is_last_token_redirection = 0;
+    size_t command_length = 0;
+
+    // Allocate initial memory for result array
+    result = malloc(sizeof(char*));
+    result[0] = malloc(1);
+    result[0][0] = '\0';
+
+    // Tokenize based on spaces to handle each element
+    token = strtok(input_copy, " ");
+    while (token != NULL) {
+        // Check if token contains quotes
+        if (strchr(token, '\"') != NULL) {
+            within_quotes = !within_quotes;
         }
+
+        // If the previous token was a redirection operator, skip this token
+        if (is_last_token_redirection) {
+            is_last_token_redirection = 0;
+            token = strtok(NULL, " ");
+            continue;
+        }
+
+        // If the token is a redirection operator, skip it and the next token
+        if (is_redirection(token)) {
+            is_last_token_redirection = 1;
+            token = strtok(NULL, " ");
+            continue;
+        }
+
+        // Calculate the required length for the command
+        command_length = strlen(result[num_commands]) + strlen(token) + 2;
+
+        // Reallocate memory for the current command
+        result[num_commands] = realloc(result[num_commands], command_length);
+
+        // Append token to the last command in result array
+        if (within_quotes || strchr(token, '|') == NULL) {
+            if (result[num_commands][0] != '\0') {
+                strcat(result[num_commands], " ");
+            }
+            strcat(result[num_commands], token);
+        } else {
+            // Split by pipe and start a new command
+            num_commands++;
+            result = realloc(result, (num_commands + 1) * sizeof(char*));
+            result[num_commands] = malloc(strlen(token) + 1);
+            strcpy(result[num_commands], token + 1); // Skip the pipe character
+        }
+
+        token = strtok(NULL, " ");
     }
-    result[index] = strdup(start);
-    result[count] = NULL;
+
+    // Trim leading spaces from each command
+    for (int i = 0; i <= num_commands; i++) {
+        char* cmd = result[i];
+        while (*cmd == ' ') cmd++;
+        memmove(result[i], cmd, strlen(cmd) + 1);
+    }
+
+    free(input_copy);
+    *count = num_commands + 1;
     return result;
 }
 
-char *ft_substr(const char *str, unsigned int start, size_t len) {
-    char *substr = malloc(len + 1);
-    if (!substr) return NULL;
-    strncpy(substr, str + start, len);
-    substr[len] = '\0';
-    return substr;
-}
-
-char *ft_strjoinslesh(const char *s1, const char *s2) {
-    size_t len1 = strlen(s1);
-    size_t len2 = strlen(s2);
-    char *result = malloc(len1 + len2 + 2);
-    if (!result) return NULL;
-    strcpy(result, s1);
-    result[len1] = '/';
-    strcpy(result + len1 + 1, s2);
-    return result;
-}
-
-void ft_free(char **strs) {
-    for (int i = 0; strs[i] != NULL; i++) {
-        free(strs[i]);
-    }
-    free(strs);
+int is_redirection(const char* token) {
+    return (strcmp(token, "<") == 0 || strcmp(token, ">") == 0 || 
+            strcmp(token, "<<") == 0 || strcmp(token, ">>") == 0);
 }
