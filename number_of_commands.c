@@ -1,40 +1,36 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   test.c                                             :+:      :+:    :+:   */
+/*   number_of_commands.c                               :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/06/16 11:03:12 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/18 11:52:11 by mbankhar         ###   ########.fr       */
+/*   Created: 2024/06/18 11:34:41 by mbankhar          #+#    #+#             */
+/*   Updated: 2024/06/18 11:58:36 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
+#include "minishell.h"
 
 // Placeholder functions to be replaced with actual implementations
-char **ft_split(const char *str, char delimiter);
-char *ft_substr(const char *str, unsigned int start, size_t len);
-char *ft_strjoinslesh(const char *s1, const char *s2);
-void ft_free(char **strs);
+char **ft_splitasd(const char *str, char delimiter);
+char *ft_substrasd(const char *str, unsigned int start, size_t len);
+char *ft_strjoinsleshasd(const char *s1, const char *s2);
+void ft_freeasd(char **strs);
 
-char *altpath(char **env, char *cmd, int i) {
+char *altpathasd(char **env, char *cmd, int i) {
     char **realpath;
     char *string = NULL;
 
-    realpath = ft_split(env[i], ':');
-    realpath[0] = ft_substr(realpath[0], 5, strlen(realpath[0]) - 5);
+    realpath = ft_splitasd(env[i], ':');
+    realpath[0] = ft_substrasd(realpath[0], 5, strlen(realpath[0]) - 5);
     if (realpath[0] == NULL) {
-        ft_free(realpath);
+        ft_freeasd(realpath);
         return NULL;
     }
     i = -1;
     while (realpath[++i]) {
-        string = ft_strjoinslesh(realpath[i], cmd);
+        string = ft_strjoinsleshasd(realpath[i], cmd);
         if (string == NULL) {
             ft_free(realpath);
             return NULL;
@@ -44,11 +40,11 @@ char *altpath(char **env, char *cmd, int i) {
         free(string);
         string = NULL;
     }
-    ft_free(realpath);
+    ft_freeasd(realpath);
     return string;
 }
 
-char *get_path(char **env, char *cmd) {
+char *get_pathasd(char **env, char *cmd) {
     int i = 0;
     char *string;
 
@@ -65,7 +61,7 @@ char *get_path(char **env, char *cmd) {
             return NULL;
         }
     } else {
-        string = altpath(env, cmd, i);
+        string = altpathasd(env, cmd, i);
     }
     return string;
 }
@@ -74,26 +70,19 @@ int get_token_number(char **tokens, char **env) {
     int count = 0;
     char *path;
 
+	if (tokens)
     for (int i = 0; tokens[i] != NULL; i++) {
-        path = get_path(env, tokens[i]);
+        path = get_pathasd(env, tokens[i]);
         if (path != NULL) {
             count++;
-            free(path);
+            // free(path);
         }
     }
     return count;
 }
 
-int main(int argc, char *argv[], char *envp[]) {
-    // Example input tokens
-    char *tokens[] = {"null", NULL};
-    int count = get_token_number(tokens, envp);
-    printf("Number of valid commands: %d\n", count);
-    return 0;
-}
-
 // Example implementations for custom functions
-char **ft_split(const char *str, char delimiter) {
+char **ft_splitasd(const char *str, char delimiter) {
     char **result;
     int count = 1;
     for (const char *temp = str; *temp; temp++) {
@@ -115,7 +104,7 @@ char **ft_split(const char *str, char delimiter) {
     return result;
 }
 
-char *ft_substr(const char *str, unsigned int start, size_t len) {
+char *ft_substrasd(const char *str, unsigned int start, size_t len) {
     char *substr = malloc(len + 1);
     if (!substr) return NULL;
     strncpy(substr, str + start, len);
@@ -123,7 +112,7 @@ char *ft_substr(const char *str, unsigned int start, size_t len) {
     return substr;
 }
 
-char *ft_strjoinslesh(const char *s1, const char *s2) {
+char *ft_strjoinsleshasd(const char *s1, const char *s2) {
     size_t len1 = strlen(s1);
     size_t len2 = strlen(s2);
     char *result = malloc(len1 + len2 + 2);
@@ -134,7 +123,7 @@ char *ft_strjoinslesh(const char *s1, const char *s2) {
     return result;
 }
 
-void ft_free(char **strs) {
+void ft_freeasd(char **strs) {
     for (int i = 0; strs[i] != NULL; i++) {
         free(strs[i]);
     }
