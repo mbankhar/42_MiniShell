@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 15:45:44 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/16 16:51:01 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/26 11:45:38 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,7 +140,7 @@ static int	ft_malloc_check(char **arr, size_t i)
 	return (1);
 }
 
-char	**ft_split(char const *s, char c)
+char	**ft_splitspecial(char const *s, char c)
 {
 	int		i;
 	int		counter;
@@ -204,4 +204,3 @@ char	**ft_split(char const *s, char c)
 	arr[i] = NULL;
 	return (arr);
 }
-

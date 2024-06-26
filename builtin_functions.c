@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/15 18:45:25 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/15 18:53:53 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/26 14:41:11 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,32 +76,4 @@ void	print_env()
 		printf("%s\n", *env);
 		env++;
 	}
-}
-
-void	execute_command(char *args[])
-{
-	pid_t			pid;
-	char			*path;
-	char			**env;
-	int				status;
-	extern char		**environ;
-
-	env = environ;
-	path = get_path(env, args[0]);
-	pid = fork();
-	if (pid == -1)
-	{
-		perror("fork");
-		exit(EXIT_FAILURE);
-	}
-	if (pid == 0)
-	{
-		if (execve(path, &args[0], args) == -1)
-		{
-			perror("execve");
-			exit(EXIT_FAILURE);
-		}
-	}
-	else
-		waitpid(pid, &status, 0);
 }

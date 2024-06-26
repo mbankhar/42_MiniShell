@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/18 12:01:13 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/18 12:02:01 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/25 18:23:49 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,14 +77,13 @@ char	*get_env_value(char **environ, const char *var)
 	len = strlen(var);
 	while (environ[index])
 	{
-		// Check if the current environment variable starts with var=
 		if (strncmp(environ[index], var, len) == 0 && environ[index][len] == '=')
 		{
 			return (environ[index] + len + 1); // Return the value part
 		}
 		index++;
 	}
-	return (NULL); // Return NULL if the variable is not found
+	return (NULL);
 }
 
 // Function to handle $LOGNAME in the commands array
@@ -128,6 +127,8 @@ void	check_dollar(char **commands, t_exec *exec)
 
 void	look_for_redirect(char **commands, t_exec *exec)
 {
+	exec->fd_in = -2;
+	exec->fd_out = -2;
 	int	i;
 	int	y;
 	i = -1;

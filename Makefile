@@ -4,7 +4,7 @@ LIBFT   := libft
 INCLUDES := -I $(LIBFT) # This is assuming you need to include libft headers
 LIBFT_LIB := $(LIBFT)/libft.a
 SRCS    := main.c split.c quotes_check.c get_path.c execute.c \
-number_of_commands.c token_dollars_redirect.c
+number_of_commands.c token_dollars_redirect.c parse.c builtin_functions.c
 OBJS    := ${SRCS:.c=.o}
 
 # CFLAGS  := -Wextra -Wall -Werror -g

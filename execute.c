@@ -6,29 +6,16 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/18 17:07:24 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/26 14:39:32 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 // Execute a single command
-void	execute(char **env, char *cmd);
+void	execute(char **env, char **cmd);
 
-void	ft_free(char **array)
-{
-	int	i;
-
-	i = 0;
-	while (array[i])
-	{
-		free(array[i]);
-		i++;
-	}
-	free(array);
-}
-
-int	execution(char **commands, char **env, t_exec *exec)
+int	execution(t_cmds *cmds, char **env, t_exec *exec)
 {
 	int			pipefd[2];
 	int			prev_fd;
@@ -37,6 +24,7 @@ int	execution(char **commands, char **env, t_exec *exec)
 
 	prev_fd = -1;
 	i = -1;
+	// printf("COMES HERE");
 	while (++i <= exec->number_of_pipes)
 	{
 		if (i < exec->number_of_pipes && pipe(pipefd) == -1)
@@ -77,7 +65,7 @@ int	execution(char **commands, char **env, t_exec *exec)
 				close(pipefd[0]);
 				close(pipefd[1]);
 			}
-			execute(env, commands[i]);
+			execute(env, cmds[i].cmd_args);
 			exit(EXIT_SUCCESS);
 		}
 		else
@@ -100,18 +88,13 @@ int	execution(char **commands, char **env, t_exec *exec)
 	return (0);
 }
 
-void	execute(char **env, char *cmd)
+void	execute(char **env, char **cmd)
 {
 	char	*path_cmd;
 	char	**cmd_args;
 
-	cmd_args = ft_split(cmd, ' ');
-	path_cmd = get_pathasd(env, cmd_args[0]);
-	// printf("%s\n", path_cmd);
-	// printf("%s\n", cmd_args[0]);
-	// printf("%s\n", cmd_args[1]);
-	// exit(1);
-	if (execve(path_cmd, cmd_args, env) == -1)
+	path_cmd = get_pathasd(env, cmd[0]);
+	if (execve(path_cmd, cmd, env) == -1)
 	{
 		perror("execve");
 		ft_putstr_fd("pipex: command not found: ", 2);
