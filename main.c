@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/26 14:40:37 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/26 14:59:56 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,6 @@ void	check_the_line(char *line, t_exec *exec, t_cmds *cmds)
 		exec->num_commands = 0;
 		exec->num_commands = get_token_number(exec->tokens, environ);
 		look_for_builtin(cmds, exec, environ);
-		// execution(cmds, environ, exec);
 	}
 	else
 		printf("Quotes error\n");

@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/26 14:39:32 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/26 14:59:09 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,13 +93,13 @@ void	execute(char **env, char **cmd)
 	char	*path_cmd;
 	char	**cmd_args;
 
-	path_cmd = get_pathasd(env, cmd[0]);
+	path_cmd = get_path(env, cmd[0]);
 	if (execve(path_cmd, cmd, env) == -1)
 	{
 		perror("execve");
 		ft_putstr_fd("pipex: command not found: ", 2);
-		ft_putendl_fd(cmd_args[0], 2);
-		ft_free(cmd_args);
-		exit(EXIT_FAILURE);
+		ft_putendl_fd(cmd[0], 2);
+		// ft_free(cmd);
+		// exit(EXIT_FAILURE);
 	}
 }
