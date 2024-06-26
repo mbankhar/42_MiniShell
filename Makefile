@@ -1,25 +1,34 @@
-# Makefile
-CC = gcc
-CFLAGS = -Wall -Wextra -Werror
-INCLUDES = -I.
-OBJ = main.o parsing.o execution.o
-TARGET = minishell
+NAME    := minishell
 
-all: $(TARGET)
+LIBFT   := libft
+INCLUDES := -I $(LIBFT) # This is assuming you need to include libft headers
+LIBFT_LIB := $(LIBFT)/libft.a
+SRCS    := main.c split.c quotes_check.c get_path.c execute.c \
+number_of_commands.c token_dollars_redirect.c parse.c builtin_functions.c
+OBJS    := ${SRCS:.c=.o}
 
-$(TARGET): $(OBJ)
-	$(CC) $(CFLAGS) $(INCLUDES) -o $(TARGET) $(OBJ) -lreadline
+# CFLAGS  := -Wextra -Wall -Werror -g
+LIBS    := -lreadline -lncurses
 
-main.o: main.c minishell.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c main.c
+all: $(NAME)
 
-parsing.o: parsing.c minishell.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c parsing.c
+libmake:
+	$(MAKE) -C $(LIBFT)
 
-execution.o: execution.c minishell.h
-	$(CC) $(CFLAGS) $(INCLUDES) -c execution.c
+%.o: %.c
+	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES) && printf "Compiling: $(notdir $<)\n"
+
+$(NAME): libmake $(OBJS)
+	$(CC) $(OBJS) -L$(LIBFT) -lft $(LIBS) $(INCLUDES) -o $(NAME)
 
 clean:
-	rm -f $(OBJ) $(TARGET)
+	@rm -rf $(OBJS)
+	@$(MAKE) -C $(LIBFT) clean
 
-.PHONY: all clean
+fclean: clean
+	@rm -rf $(NAME)
+	@$(MAKE) -C $(LIBFT) fclean
+
+re: fclean all
+
+.PHONY: all clean fclean re

@@ -33,33 +33,7 @@ void	change_directory(char *path)
 	}
 }
 
-void execute_export(const char *var, const char *value) {
-    // Simulate setting an environment variable by writing to a file
-    char filename[256];
-    snprintf(filename, sizeof(filename), "%s.env", var);
 
-    // Check if the file can be accessed
-    if (access(filename, F_OK) != -1) {
-        // File exists, write the value to the file
-        FILE *file = fopen(filename, "w");
-        if (file != NULL) {
-            fprintf(file, "%s", value);
-            fclose(file);
-            printf("Exported %s to %s with value: %s\n", var, filename, value);
-        } else {
-            perror("fopen");
-        }
-    } else {
-        // File does not exist, create and write to the file
-        FILE *file = fopen(filename, "w");
-        if (file != NULL) {
-            fprintf(file, "%s", value);
-            fclose(file);
-            printf("Exported %s to %s with value: %s\n", var, filename, value);
-        } else {
-            perror("fopen");
-        }
-    }
 }
 
 void	execute_echo(char *args[])
