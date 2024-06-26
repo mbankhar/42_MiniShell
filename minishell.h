@@ -38,11 +38,11 @@ typedef struct s_exec
 	int			num_commands;
 }			t_exec;
 
-typedef struct s_cmds_arr
-{
-	char		**cmd_args;
-	int			size;
-}			t_cmds;
+typedef struct s_cmds_arr {
+	char      **cmd_args;
+	int          size;
+	int          cmd_args_count;
+} t_cmds;
 
 char	*altpath(char **env, char *cmd, int i);
 char	*get_path(char **env, char *cmd);
@@ -53,13 +53,15 @@ int		are_quotes_even(const char *str);
 int		get_token_number(char **tokens, char **env);
 void	look_for_redirect(char **commands, t_exec *exec);
 void	check_dollar(char **commands, t_exec *exec);
+bool is_builtin(const char *cmd);
+void handle_builtin(t_cmds *cmds, int index, char **env, t_exec *exec);
 char	**get_the_token(char **commands, t_exec *exec);
 char 	*get_pathasd(char **env, char *cmd);
 // char** 	parse_commands(const char* input, int* count);
 char	**ft_splitspecial(char const *s, char c);
 void	change_directory(char *path);
 void	execute_echo(char *args[]);
-// void	execute_export(char *var, char *value);
+void execute_export(const char *var, const char *value);
 void	execute_unset(char *var);
 void	print_env();
 
