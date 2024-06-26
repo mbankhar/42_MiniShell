@@ -59,7 +59,7 @@ char 	*get_pathasd(char **env, char *cmd);
 char	**ft_splitspecial(char const *s, char c);
 void	change_directory(char *path);
 void	execute_echo(char *args[]);
-void	execute_export(char *var, char *value);
+// void	execute_export(char *var, char *value);
 void	execute_unset(char *var);
 void	print_env();
 

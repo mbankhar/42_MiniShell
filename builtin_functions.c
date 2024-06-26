@@ -33,7 +33,31 @@ void	change_directory(char *path)
 	}
 }
 
+void execute_export(const char *var, const char *value) {
+	extern char **environ;
+	char *new_entry = malloc(strlen(var) + strlen(value) + 2);
+	if (!new_entry) {
+		perror("malloc");
+		return;
+	}
 
+	sprintf(new_entry, "%s=%s", var, value);
+
+	int i = 0;
+	while (environ[i]) {
+		i++;
+	}
+	// Reallocate the environ array to add the new entry
+	char **new_environ = realloc(environ, (i + 2) * sizeof(char *));
+	if (!new_environ) {
+		perror("realloc");
+		free(new_entry); // Clean up
+		return;
+	}
+	environ = new_environ;
+
+	environ[i] = new_entry;
+	environ[i + 1] = NULL;
 }
 
 void	execute_echo(char *args[])
