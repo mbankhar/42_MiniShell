@@ -34,32 +34,30 @@ void	change_directory(char *path)
 }
 
 void execute_export(const char *var, const char *value) {
-    // Simulate setting an environment variable by writing to a file
-    char filename[256];
-    snprintf(filename, sizeof(filename), "%s.env", var);
+	extern char **environ;
+	char *new_entry = malloc(strlen(var) + strlen(value) + 2); // +2 for '=' and '\0'
+	if (!new_entry) {
+		perror("malloc");
+		return;
+	}
 
-    // Check if the file can be accessed
-    if (access(filename, F_OK) != -1) {
-        // File exists, write the value to the file
-        FILE *file = fopen(filename, "w");
-        if (file != NULL) {
-            fprintf(file, "%s", value);
-            fclose(file);
-            printf("Exported %s to %s with value: %s\n", var, filename, value);
-        } else {
-            perror("fopen");
-        }
-    } else {
-        // File does not exist, create and write to the file
-        FILE *file = fopen(filename, "w");
-        if (file != NULL) {
-            fprintf(file, "%s", value);
-            fclose(file);
-            printf("Exported %s to %s with value: %s\n", var, filename, value);
-        } else {
-            perror("fopen");
-        }
-    }
+	sprintf(new_entry, "%s=%s", var, value);
+
+	int i = 0;
+	while (environ[i]) {
+		i++;
+	}
+	// Reallocate the environ array to add the new entry
+	char **new_environ = realloc(environ, (i + 2) * sizeof(char *));
+	if (!new_environ) {
+		perror("realloc");
+		free(new_entry); // Clean up
+		return;
+	}
+	environ = new_environ;
+
+	environ[i] = new_entry;
+	environ[i + 1] = NULL;
 }
 
 void	execute_echo(char *args[])
