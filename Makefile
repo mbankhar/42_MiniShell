@@ -12,14 +12,14 @@ LIBS    := -lreadline -lncurses
 
 all: $(NAME)
 
-libmake:
-	$(MAKE) -C $(LIBFT)
-
 %.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $< $(INCLUDES) && printf "Compiling: $(notdir $<)\n"
 
-$(NAME): libmake $(OBJS)
+$(NAME): $(LIBFT_LIB) $(OBJS)
 	$(CC) $(OBJS) -L$(LIBFT) -lft $(LIBS) $(INCLUDES) -o $(NAME)
+	
+$(LIBFT_LIB) : $(LIBFT)
+	cd libft && make
 
 clean:
 	@rm -rf $(OBJS)
@@ -31,4 +31,7 @@ fclean: clean
 
 re: fclean all
 
-.PHONY: all clean fclean re
+run: all
+	./minishell
+
+.PHONY: all clean fclean re run

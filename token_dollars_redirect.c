@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/18 12:01:13 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/25 18:23:49 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/27 13:47:55 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,26 +125,3 @@ void	check_dollar(char **commands, t_exec *exec)
 	}
 }
 
-void	look_for_redirect(char **commands, t_exec *exec)
-{
-	exec->fd_in = -2;
-	exec->fd_out = -2;
-	int	i;
-	int	y;
-	i = -1;
-	while (commands[++i])
-	{
-		y = -1;
-		while (commands[i][++y])
-		{
-			if (commands[i][y] == '>' && commands[i][y + 1] == '>')
-				exec->fd_out = open(commands[i + 1], O_WRONLY | O_CREAT | O_APPEND, 0644);
-			// else if (commands[i][y] == '<' && commands[i][y + 1] == '<')
-			// 	here_doc();
-			else if (commands[i][y] == '<')
-				exec->fd_in = open(commands[i + 1], O_RDONLY);
-			else if (commands[i][y] == '>')
-				exec->fd_out = open(commands[i + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		}
-	}
-}

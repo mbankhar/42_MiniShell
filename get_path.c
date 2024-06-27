@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 17:48:20 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/17 20:34:24 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/27 14:27:24 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ char	*altpath(char **env, char *cmd, int i)
 	if (realpath[0] == NULL)
 	{
 		ft_free(realpath);
-		exit(1);
+		// exit(1);
 	}
 	i = -1;
 	while (realpath[++i])
@@ -31,7 +31,7 @@ char	*altpath(char **env, char *cmd, int i)
 		if (string == NULL)
 		{
 			ft_free(realpath);
-			exit(1);
+			// exit(1);
 		}
 		if (access(string, X_OK) == 0)
 			break ;
@@ -61,7 +61,7 @@ char	*get_path(char **env, char *cmd)
 		if (access(string, X_OK) != 0)
 		{
 			free(string);
-			exit(1);
+			// exit(1);
 		}
 	}
 	else
