@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/27 15:21:06 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/27 17:04:36 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,20 +21,13 @@ int	execution(t_cmds *cmds, char **env, t_exec *exec)
 {
 	int			pipefd[2];
 	int			prev_fd;
-	pid_t		pid;
 	int			i;
 
 	prev_fd = -1;
 	i = -1;
-	while (++i <= exec->number_of_pipes)
+	while (++i < exec->num_commands)
 	{
-		// if (is_builtin(cmds[i].cmd_args[0]))
-		// {
-		// 	printf("HELLO\n");
-		// 	handle_builtin(cmds, i, env, exec);
-		// 	continue;  // Skip forking and exec for builtins
-		// }
-		if (i < exec->number_of_pipes && pipe(pipefd) == -1)
+		if (i < exec->num_commands - 1 && pipe(pipefd) == -1)
 		{
 			perror("pipe");
 			exit(EXIT_FAILURE);
@@ -51,23 +44,38 @@ int	execution(t_cmds *cmds, char **env, t_exec *exec)
 			{
 				if (cmds[i].fd_in != -2)
 					dup2(cmds[i].fd_in, 0);
-				dup2(pipefd[1], 1);
+				if (cmds[i].fd_out != -2)
+					dup2(cmds[i].fd_out, 1);
+				else
+					dup2(pipefd[1], 1);
 			}
 			else if (i == exec->num_commands - 1)
 			{
+				if (cmds[i].fd_in != -2)
+					dup2(cmds[i].fd_in, 0);
+				else
+					dup2(prev_fd, 0);
 				if (cmds[i].fd_out != -2)
 					dup2(cmds[i].fd_out, 1);
-				dup2(prev_fd, 0);
 			}
 			else
 			{
-				dup2(prev_fd, 0);
-				dup2(pipefd[1], 1);
+				if (cmds[i].fd_in != -2)
+					dup2(cmds[i].fd_in, 0);
+				else
+					dup2(prev_fd, 0);
+				if (cmds[i].fd_out != -2)
+					dup2(cmds[i].fd_out, 1);
+				else
+					dup2(pipefd[1], 1);
 			}
-			close(cmds[i].fd_in);
+			if (cmds[i].fd_in != -2)
+				close(cmds[i].fd_in);
+			if (cmds[i].fd_out != -2)
+				close(cmds[i].fd_out);
 			if (prev_fd != -1)
 				close(prev_fd);
-			if (i < exec->number_of_pipes)
+			if (i < exec->num_commands - 1)
 			{
 				close(pipefd[0]);
 				close(pipefd[1]);
@@ -79,15 +87,13 @@ int	execution(t_cmds *cmds, char **env, t_exec *exec)
 		{
 			if (prev_fd != -1)
 				close(prev_fd);
-			if (i < exec->number_of_pipes)
+			if (i < exec->num_commands - 1)
 			{
 				prev_fd = pipefd[0];
 				close(pipefd[1]);
 			}
 		}
 	}
-	if (cmds[i].fd_in == -2)
-		close(cmds[i].fd_in);
 	i = -1;
 	while (++i < exec->num_commands)
 	{
@@ -96,7 +102,9 @@ int	execution(t_cmds *cmds, char **env, t_exec *exec)
 	return (0);
 }
 
-bool is_builtin(const char *cmd)
+
+
+bool	is_builtin(const char *cmd)
 {
 	static const char *builtins[] =
 	{
@@ -178,7 +186,7 @@ void execute(char **env, char **cmd)
 	{
 		ft_putstr_fd("pipex: command not found: ", 2);
 		ft_putendl_fd(cmd[0], 2);
-		// exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	else
 	{
