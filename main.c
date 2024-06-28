@@ -1,44 +1,47 @@
-	/* ************************************************************************** */
-	/*                                                                            */
-	/*                                                        :::      ::::::::   */
-	/*   main.c                                             :+:      :+:    :+:   */
-	/*                                                    +:+ +:+         +:+     */
-	/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
-	/*                                                +#+#+#+#+#+   +#+           */
-	/*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-	/*   Updated: 2024/06/26 14:59:56 by mbankhar         ###   ########.fr       */
-	/*                                                                            */
-	/* ************************************************************************** */
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
+/*   Updated: 2024/06/28 13:46:29 by mbankhar         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
 
-	#include "minishell.h"
+#include "minishell.h"
 
-	#define MAX_INPUT_SIZE 1024
-	#define MAX_ARG_SIZE 100
+#define MAX_INPUT_SIZE 1024
+#define MAX_ARG_SIZE 100
 
 
 void	look_for_redirect(char **commands, int index, t_cmds *cmds)
 {
 
 	if (commands[index][0] == '>' && commands[index][1] == '>')
-		cmds->fd_out = open(commands[index + 1], O_WRONLY | O_CREAT | O_APPEND, 0644);
+		cmds->fd_out
+			= open(commands[index + 1], O_WRONLY | O_CREAT | O_APPEND, 0644);
 	// else if (commands[i][y] == '<' && commands[i][y + 1] == '<')
 		// 	here_doc();
 	else if (commands[index][0] == '<')
 		cmds->fd_in = open(commands[index + 1], O_RDONLY);
 	else if (commands[index][0] == '>')
-		cmds->fd_out = open(commands[index + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
+		cmds->fd_out
+			= open(commands[index + 1], O_WRONLY | O_CREAT | O_TRUNC, 0644);
 
 }
 
-	void	do_shit(char **args, t_exec *exec, t_cmds **cmds_ptr)
+void	do_shit(char **args, t_exec *exec, t_cmds **cmds_ptr)
 {
-	int	i;
-	int	j;
-	int	k;
+	int		i;
+	int		j;
+	int		k;
+	t_cmds	*cmds;
 
 	i = -1;
 	*cmds_ptr = malloc((exec->number_of_pipes + 1) * sizeof(t_cmds));
-	t_cmds *cmds = *cmds_ptr;
+	cmds = *cmds_ptr;
 	i = -1;
 	k = 0;
 	while (args[++i])
@@ -88,16 +91,6 @@ void	look_for_redirect(char **commands, int index, t_cmds *cmds)
 		}
 	}
 	cmds->size = k;
-	// i = -1;
-	// while (cmds->size > ++i)
-	// {
-	// 	j = -1;
-	// 	printf("%d\n", cmds[i].fd_in);
-	// 	printf("%d\n", cmds[i].fd_out);
-	// 	while (cmds[i].cmd_args[++j])
-	// 		printf("%s\n", cmds[i].cmd_args[j]);
-	// }
-	// exit(1);
 }
 
 
@@ -141,12 +134,10 @@ void	remove_quotes(char **args)
 
 bool	check_the_line(char *line, t_exec *exec, t_cmds *cmds)
 {
-	int			i;
 	int			count;
 	bool should_continue = true;
 	char		**args;
 	extern char	**environ;
-	int			j;
 
 	count = 0;
 	if (are_quotes_even(line) != 0)
@@ -154,38 +145,16 @@ bool	check_the_line(char *line, t_exec *exec, t_cmds *cmds)
 		exec->number_of_pipes = count_char_occurrences(line, '|');
 		check_dollar(&line, exec);
 		args = ft_splitspecial(line, '|');
-		remove_quotes(args);
 		do_shit(args, exec, &cmds);
 		exec->tokens = get_the_token(args, exec);
-		exec->num_commands = 0;
-		exec->num_commands = get_token_number(exec->tokens, environ);
-		// i = -1;
-		// while (cmds->size > ++i)
-		// {
-		// 	j = 0;
-		// 	printf("%d\n", cmds[i].fd_in);
-		// 	printf("%d\n", cmds[i].fd_out);
-		// 	while (cmds[i].cmd_args[++j])
-		// 		printf("%s\n", cmds[i].cmd_args[j]);
-		// }
-		// exit(1);
 		execution(cmds, environ, exec);
-
 		if (cmds->size > 0 && strcmp(cmds[0].cmd_args[0], "exit") == 0)
-		{
-			should_continue = false; // Set the flag to exit
-		}
-
-		// Free args even if exiting
+			should_continue = false;
 		ft_free(args);
-
 	}
 	else
-	{
 		printf("Quotes error\n");
-	}
-
-	return should_continue; // Return the flag to control the loop
+	return should_continue;
 }
 
 int	main(int argc, char **argv, char **envp)

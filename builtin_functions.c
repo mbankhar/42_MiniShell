@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtin_functions.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
+/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/15 18:45:25 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/26 16:15:02 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/06/28 11:14:34 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,8 @@ void	change_directory(char *path)
 	}
 }
 
-void execute_export(const char *var, const char *value) {
+void execute_export(const char *var, const char *value)
+{
 	extern char **environ;
 	char *new_entry = malloc(strlen(var) + strlen(value) + 2);
 	if (!new_entry) {
@@ -44,7 +45,8 @@ void execute_export(const char *var, const char *value) {
 	sprintf(new_entry, "%s=%s", var, value);
 
 	int i = 0;
-	while (environ[i]) {
+	while (environ[i])
+	{
 		i++;
 	}
 	// Reallocate the environ array to add the new entry

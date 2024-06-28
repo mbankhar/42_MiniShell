@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/27 14:41:01 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/28 13:52:59 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,23 +30,20 @@
 
 typedef struct s_exec
 {
-	int			fd_in;
-	int			fd_out;
 	int			number_of_pipes;
 	char		**commands;
 	char		**tokens;
-	int			num_commands;
 }			t_exec;
 
 typedef struct s_cmds_arr
 {
-	char      **cmd_args;
-	int          size;
-	int          cmd_args_count;
-	int			fd_in;
-	int			fd_out;
-	int			pid;
-} t_cmds;
+	char	**cmd_args;
+	int		size;
+	int		cmd_args_count;
+	int		fd_in;
+	int		fd_out;
+	int		pid;
+}	t_cmds;
 
 char	*altpath(char **env, char *cmd, int i);
 char	*get_path(char **env, char *cmd);
@@ -57,17 +54,15 @@ int		are_quotes_even(const char *str);
 int		get_token_number(char **tokens, char **env);
 void	look_for_redirect(char **commands, int index, t_cmds *cmds);
 void	check_dollar(char **commands, t_exec *exec);
-bool is_builtin(const char *cmd);
-void handle_builtin(t_cmds *cmds, int index, char **env, t_exec *exec);
 char	**get_the_token(char **commands, t_exec *exec);
-char 	*get_pathasd(char **env, char *cmd);
-// char** 	parse_commands(const char* input, int* count);
+char	*get_pathasd(char **env, char *cmd);
 char	**ft_splitspecial(char const *s, char c);
 void	change_directory(char *path);
 void	execute_echo(char *args[]);
-void execute_export(const char *var, const char *value);
+void	execute_export(const char *var, const char *value);
 void	execute_unset(char *var);
-void	print_env();
+void	print_env(void);
+void	remove_quotes(char **args);
 
 
 #endif

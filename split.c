@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 15:45:44 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/26 11:45:38 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/28 13:49:41 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ static size_t	ft_strlccpy(char *dst, const char *src, size_t dstsize)
 	return (src_len);
 }
 
-static	size_t	ft_lens(const char *c, char b)
+static size_t	ft_lens(const char *c, char b)
 {
 	size_t	i;
 	int		in_double_quotes;
@@ -62,12 +62,11 @@ static	size_t	ft_lens(const char *c, char b)
 	if (operator_check(*c) == 1)
 	{
 		if ((*c == '<' && *(c + 1) == '<') || (*c == '>' && *(c + 1) == '>'))
-		{
 			return (2);
-		}
 		return (1);
 	}
-	while (*c != '\0' && (operator_check(*c) != 1|| in_double_quotes || in_single_quotes))
+	while (*c != '\0' && (operator_check(*c) != 1 || in_double_quotes
+			|| in_single_quotes))
 	{
 		if (*c == '"' && !in_single_quotes)
 			in_double_quotes = !in_double_quotes;
@@ -100,16 +99,18 @@ static int	countwords(const char *str, char c)
 		{
 			in_single_quotes = !in_single_quotes;
 		}
-		if (operator_check(*str) == 0 && !inword && !in_double_quotes && !in_single_quotes)
+		if (operator_check(*str) == 0 && !inword && !in_double_quotes
+			&& !in_single_quotes)
 		{
 			inword = 1;
 			wordcount++;
 		}
 		if ((operator_check(*str) == 1) && !isspace(*str))
 		{
-			if ((*str == '<' && *(str + 1) == '<') || (*str == '>' && *(str + 1) == '>'))
+			if ((*str == '<' && *(str + 1) == '<') || (*str == '>'
+					&& *(str + 1) == '>'))
 			{
-				str++;  // Skip next character for << and >>
+				str++;
 			}
 			wordcount++;
 			inword = 0;
@@ -140,7 +141,7 @@ static int	ft_malloc_check(char **arr, size_t i)
 	return (1);
 }
 
-char	**ft_splitspecial(char const *s, char c)
+char **ft_splitspecial(char const *s, char c)
 {
 	int		i;
 	int		counter;
@@ -148,9 +149,9 @@ char	**ft_splitspecial(char const *s, char c)
 	int		p;
 	char	quote;
 
+	i = 0;
 	p = 0;
 	counter = countwords(s, c);
-	i = 0;
 	arr = (char **)malloc(sizeof(char *) * (counter + 1));
 	if (arr == NULL)
 	{
@@ -162,7 +163,8 @@ char	**ft_splitspecial(char const *s, char c)
 		{
 			if (operator_check(s[p]) == 1 && s[p] != ' ')
 			{
-				if ((s[p] == '<' && s[p + 1] == '<') || (s[p] == '>' && s[p + 1] == '>'))
+				if ((s[p] == '<' && s[p + 1] == '<') || (s[p]
+						== '>' && s[p + 1] == '>'))
 				{
 					arr[i] = (char *)malloc(sizeof(char) * 3);
 					arr[i][0] = s[p];
@@ -179,6 +181,10 @@ char	**ft_splitspecial(char const *s, char c)
 				i++;
 			}
 			p++;
+		}
+		if (s[p] == '\0')
+		{
+			break ;
 		}
 		arr[i] = (char *)malloc(sizeof(char) * (ft_lens(&s[p], c) + 1));
 		if (!ft_malloc_check(arr, i))

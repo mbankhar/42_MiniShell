@@ -6,7 +6,7 @@
 /*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/18 12:01:13 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/27 13:47:55 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/06/28 13:06:23 by mbankhar         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -77,9 +77,10 @@ char	*get_env_value(char **environ, const char *var)
 	len = strlen(var);
 	while (environ[index])
 	{
-		if (strncmp(environ[index], var, len) == 0 && environ[index][len] == '=')
+		if (strncmp(environ[index], var, len) == 0
+			&& environ[index][len] == '=')
 		{
-			return (environ[index] + len + 1); // Return the value part
+			return (environ[index] + len + 1);
 		}
 		index++;
 	}
@@ -91,15 +92,13 @@ void	handle_dollar(char **commands, int i, int y, char **environ)
 {
 	char	*var_name;
 	char	*env_value;
-	// Extract the variable name from the command (e.g., LOGNAME from $LOGNAME)
+
 	var_name = commands[i] + y + 1;
 
-	// Get the value of the environment variable
 	env_value = get_env_value(environ, var_name);
 	ft_strcpy(commands[i], env_value);
 	if (env_value)
 	{
-		// Replace the command string with the environment variable's value
 		commands[i] = env_value;
 	}
 }
@@ -118,7 +117,6 @@ void	check_dollar(char **commands, t_exec *exec)
 		{
 			if (commands[i][y] == '$')
 			{
-				// check_for_single_or_double(commands, i);
 				handle_dollar(commands, i, y, environ);
 			}
 		}
