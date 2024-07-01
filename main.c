@@ -3,18 +3,42 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/28 13:46:29 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/07/01 15:32:19 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+#include <signal.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 #define MAX_INPUT_SIZE 1024
 #define MAX_ARG_SIZE 100
 
+void sigint_handler(int signal) {
+    if (signal == SIGINT) {
+        printf("SIGINT received\n");
+        printf("\n");
+        fflush(stdout);
+    }
+}
+void sigquit_handler(int signal) {
+    if (signal == SIGQUIT) {
+        printf("Quit signal received, exiting.\n");
+        exit(EXIT_FAILURE);
+    }
+}
+
+void sigterm_handler(int signal) {
+    if (signal == SIGTERM) {
+        printf("Termination signal received, exiting.\n");
+        exit(EXIT_FAILURE);
+    }
+}
 
 void	look_for_redirect(char **commands, int index, t_cmds *cmds)
 {
@@ -38,6 +62,8 @@ void	do_shit(char **args, t_exec *exec, t_cmds **cmds_ptr)
 	int		j;
 	int		k;
 	t_cmds	*cmds;
+	 struct sigaction sa;
+
 
 	i = -1;
 	*cmds_ptr = malloc((exec->number_of_pipes + 1) * sizeof(t_cmds));
@@ -164,10 +190,18 @@ int	main(int argc, char **argv, char **envp)
 	char		*args[MAX_ARG_SIZE];
 	t_exec		exec;
 	t_cmds		*cmds;
+	struct sigaction sa;
 
 	(void)argc;
 	(void)argv;
 	(void)envp;
+
+
+	sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    sa.sa_handler = sigint_handler;
+    sigaction(SIGINT, &sa, NULL);
 	while (1)
 	{
 		line = readline("minishell> ");
