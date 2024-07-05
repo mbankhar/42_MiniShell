@@ -1,0 +1,125 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   token_dollars_redirect.c                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/06/18 12:01:13 by mbankhar          #+#    #+#             */
+/*   Updated: 2024/06/28 13:06:23 by mbankhar         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "minishell.h"
+
+char	**get_the_token(char **commands, t_exec *exec)
+{
+	int		i;
+	int		cmd_count;
+	char	**filtered_commands;
+	int		skip_next;
+	int		j;
+	int		k;
+
+	i = 0;
+	cmd_count = 0;
+	filtered_commands = NULL;
+	skip_next = 0;
+	while (commands[i])
+	{
+		if (skip_next)
+			skip_next = 0;
+		else if (strcmp(commands[i], "<") == 0 || strcmp(commands[i], ">") == 0)
+			skip_next = 1;
+		else if (strcmp(commands[i], "|") != 0)
+			cmd_count++;
+		i++;
+	}
+	filtered_commands = (char **)malloc((cmd_count + 1) * sizeof(char *));
+	if (!filtered_commands)
+		return (NULL);
+	i = 0;
+	j = 0;
+	skip_next = 0;
+	while (commands[i])
+	{
+		if (skip_next)
+			skip_next = 0;
+		else if (strcmp(commands[i], "<") == 0 || strcmp(commands[i], ">") == 0)
+			skip_next = 1;
+		else if (strcmp(commands[i], "|") != 0)
+		{
+			filtered_commands[j] = strdup(commands[i]);
+			if (!filtered_commands[j])
+			{
+				k = -1;
+				while (++k < j)
+				{
+					free(filtered_commands[k]);
+				}
+				free(filtered_commands);
+				return (NULL);
+			}
+			j++;
+		}
+		i++;
+	}
+	filtered_commands[j] = NULL;
+	return (filtered_commands);
+}
+
+char	*get_env_value(char **environ, const char *var)
+{
+	int		index;
+	size_t	len;
+
+	index = 0;
+	len = strlen(var);
+	while (environ[index])
+	{
+		if (strncmp(environ[index], var, len) == 0
+			&& environ[index][len] == '=')
+		{
+			return (environ[index] + len + 1);
+		}
+		index++;
+	}
+	return (NULL);
+}
+
+// Function to handle $LOGNAME in the commands array
+void	handle_dollar(char **commands, int i, int y, char **environ)
+{
+	char	*var_name;
+	char	*env_value;
+
+	var_name = commands[i] + y + 1;
+
+	env_value = get_env_value(environ, var_name);
+	ft_strcpy(commands[i], env_value);
+	if (env_value)
+	{
+		commands[i] = env_value;
+	}
+}
+
+void	check_dollar(char **commands, t_exec *exec)
+{
+	extern char	**environ;
+	int			i;
+	int			y;
+
+	i = -1;
+	while (commands[++i])
+	{
+		y = -1;
+		while (commands[i][++y])
+		{
+			if (commands[i][y] == '$')
+			{
+				handle_dollar(commands, i, y, environ);
+			}
+		}
+	}
+}
+
