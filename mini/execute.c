@@ -6,14 +6,14 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/02 12:00:49 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/08 13:11:49 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
 void	execute(char **env, char **cmd);
-void execute_builtin(char **cmd);
+// void execute_builtin(char **cmd);
 
 // Execute a single command
 void	execute(char **env, char **cmd);
@@ -29,37 +29,39 @@ int	is_builtin_command(char *cmd) {
     return 0;
 }
 
-void execute_builtin(char **cmd) {
-    if (strcmp(cmd[0], "cd") == 0) {
-        if (cmd[1] == NULL) {
-            fprintf(stderr, "cd: missing argument\n");
-        } else {
-            change_directory(cmd[1]);
-        }
-    } else if (strcmp(cmd[0], "echo") == 0) {
-        execute_echo(cmd);
-    } else if (strcmp(cmd[0], "export") == 0) {
-        if (cmd[1] == NULL) {
-            fprintf(stderr, "export: missing argument\n");
-        } else {
-            char *var = strtok(cmd[1], "=");
-            char *value = strtok(NULL, "=");
-            if (value != NULL) {
-                execute_export(var, value);
-            } else if (value == NULL && strchr(cmd[1], '=')) {
-                execute_export(var, "");
-            }
-        }
-    } else if (strcmp(cmd[0], "unset") == 0) {
-        if (cmd[1] == NULL) {
-            fprintf(stderr, "unset: missing argument\n");
-        } else {
-            execute_unset(cmd[1]);
-        }
-    } else if (strcmp(cmd[0], "env") == 0) {
-        print_env();
-    }
-}
+// void execute_builtin(t_cmds *cmds, char **environ) {
+//     char **cmd = cmds->cmd_args;  // Assuming cmd_args is a member of t_cmds
+
+//     if (strcmp(cmd[0], "cd") == 0) {
+//         if (cmd[1] == NULL) {
+//             fprintf(stderr, "cd: missing argument\n");
+//         } else {
+//             change_directory(cmd[1]);
+//         }
+//     } else if (strcmp(cmd[0], "echo") == 0) {
+//         execute_echo(cmd);
+//     } else if (strcmp(cmd[0], "export") == 0) {
+//         if (cmd[1] == NULL) {
+//             fprintf(stderr, "export: missing argument\n");
+//         } else {
+//             char *var = strtok(cmd[1], "=");
+//             char *value = strtok(NULL, "=");
+//             if (value != NULL) {
+//                 execute_export(var, value);
+//             } else if (value == NULL && strchr(cmd[1], '=')) {
+//                 execute_export(var, "");
+//             }
+//         }
+//     } else if (strcmp(cmd[0], "unset") == 0) {
+//         if (cmd[1] == NULL) {
+//             fprintf(stderr, "unset: missing argument\n");
+//         } else {
+//             execute_unset(cmd[1]);
+//         }
+//     } else if (strcmp(cmd[0], "env") == 0) {
+//         print_env();
+//     }
+// }
 
 int	execution(t_cmds *cmds, char **env, t_exec *exec)
 {
@@ -148,10 +150,13 @@ int	execution(t_cmds *cmds, char **env, t_exec *exec)
 
 void	execute(char **env, char **cmd)
 {
-    if (is_builtin_command(cmd[0])) {
-        execute_builtin(cmd);
+   if (is_builtin_command(cmd[0])) {
+        t_cmds temp_cmd = {0};  // Create a temporary t_cmds struct
+        temp_cmd.cmd_args = cmd;
+        execute_builtin(&temp_cmd, env);
         return;
     }
+	
 
     char	*path_cmd;
 

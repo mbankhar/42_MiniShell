@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/02 12:02:47 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/08 13:02:34 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,15 +35,24 @@ typedef struct s_exec
 	char		**tokens;
 }			t_exec;
 
-typedef struct s_cmds_arr
-{
-	char	**cmd_args;
-	int		size;
-	int		cmd_args_count;
-	int		fd_in;
-	int		fd_out;
-	int		pid;
-}	t_cmds;
+typedef struct s_env_node {
+    char *name;
+    char *value;
+    struct s_env_node *next;
+} t_env_node;
+
+t_env_node *g_env_list; // Global environment variable list
+
+
+typedef struct s_cmds_arr {
+    char    **cmd_args;
+    int     size;
+    int     cmd_args_count;
+    int     fd_in;
+    int     fd_out;
+    int     pid;
+} t_cmds;
+
 
 char	*altpath(char **env, char *cmd, int i);
 char	*get_path(char **env, char *cmd);
@@ -57,13 +66,18 @@ void	check_dollar(char **commands, t_exec *exec);
 char	**get_the_token(char **commands, t_exec *exec);
 char	*get_pathasd(char **env, char *cmd);
 char	**ft_splitspecial(char const *s, char c);
-void	change_directory(char *path);
+void	change_directory(const char *path);
 void	execute_echo(char *args[]);
 void	execute_export(const char *var, const char *value);
 void	execute_unset(char *var);
 void	print_env(void);
 void	remove_quotes(char **args);
-void execute_builtin(char **cmd);
+void set_env_var(const char *name, const char *value, char **environ);
+void set_env_var(const char *name, const char *value, char **environ);
+void add_env_node(t_env_node **env_list, const char *name, const char *value);
+void update_env_node(t_env_node *env_list, const char *name, const char *value);
+void execute_single_builtin(char **cmd);
+void execute_builtin(t_cmds *cmds, char **environ);	
 int	is_builtin_command(char *cmd);
 
 
