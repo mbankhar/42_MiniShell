@@ -3,14 +3,53 @@
 /*                                                        :::      ::::::::   */
 /*   redirection.c                                      :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 11:17:31 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/11 10:38:35 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/07/13 14:18:19 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+
+// char	*handle_heredoc(const char *delimiter);
+// void	test_heredoc(void);
+// void	execute_command_with_heredoc(char *command, char *heredoc_content);
+
+// Add this new function
+void	execute_command_with_heredoc(char *command, char *heredoc_content)
+{
+	int		pipefd[2];
+	pid_t	pid;
+
+	if (pipe(pipefd) == -1)
+	{
+		perror("pipe");
+		return ;
+	}
+	pid = fork();
+	if (pid == -1)
+	{
+		perror("fork");
+		return ;
+	}
+	else if (pid == 0) // Child process
+	{
+		close(pipefd[1]);
+		dup2(pipefd[0], STDIN_FILENO);
+		close(pipefd[0]);
+		execlp(command, command, NULL);
+		perror("execlp");
+		exit(1);
+	}
+	else // Parent process
+	{
+		close(pipefd[0]);
+		write(pipefd[1], heredoc_content, strlen(heredoc_content));
+		close(pipefd[1]);
+		waitpid(pid, NULL, 0);
+	}
+}
 
 // Function to remove quotes from a string
 char	*remove_quotess(const char *str)
@@ -43,7 +82,7 @@ char	*remove_quotess(const char *str)
 }
 
 // Function to get the value of an environment variable from a custom environment
-char *get_custom_env_value(const char *name, char **env)
+char	*get_custom_env_value(const char *name, char **env)
 {
 	size_t	name_len;
 	int		i;
@@ -68,6 +107,8 @@ char	*expand_env_variables(const char *str, char **env)
 	const char	*start;
 	const char	*dollar;
 	const char	*end;
+	char		var_name[128];
+	char		*value;
 
 	len = strlen(str);
 	result = malloc(len + 1);
@@ -82,10 +123,9 @@ char	*expand_env_variables(const char *str, char **env)
 		end = dollar;
 		while (*end && (isalnum(*end) || *end == '_'))
 			end++;
-		char var_name[128];
 		strncpy(var_name, dollar, end - dollar);
 		var_name[end - dollar] = '\0';
-		char *value = get_custom_env_value(var_name, env);
+		value = get_custom_env_value(var_name, env);
 		if (value)
 			strcat(result, value);
 		start = end;
@@ -93,14 +133,82 @@ char	*expand_env_variables(const char *str, char **env)
 	strcat(result, start);
 	return (result);
 }
+void test_heredoc(void)
+{
+    t_heredoc_result result = handle_heredoc("EOF");
+    if (result.success && result.content)
+    {
+        printf("Heredoc content:\n%s", result.content);
+        free(result.content);
+    }
+    else
+    {
+        printf("Failed to read heredoc\n");
+    }
+}
+
+// Function to handle Heredoc
+
+t_heredoc_result handle_heredoc(const char *delimiter) {
+    char *line = NULL;
+    size_t len = 0;
+    ssize_t read;
+    char *heredoc_content = malloc(1);
+    heredoc_content[0] = '\0';  // Ensuring the initial string is empty but allocated.
+
+    if (!heredoc_content) {
+        perror("Error allocating memory for heredoc content");
+        return (t_heredoc_result){NULL, 0}; // Early exit on memory allocation failure
+    }
+
+    printf("Start heredoc, enter delimiter to end: '%s'\n", delimiter);
+
+    while (1) {
+        printf("heredoc> ");
+        read = getline(&line, &len, stdin);  // Read line from stdin
+
+        if (read == -1) {  // Check for read errors or EOF
+            perror("getline failed");
+            free(line);
+            free(heredoc_content);
+            return (t_heredoc_result){NULL, 0}; // Return error in heredoc reading
+        }
+
+        if (line[read - 1] == '\n') {
+            line[read - 1] = '\0'; // Strip newline
+        }
+
+        if (strcmp(line, delimiter) == 0) {  // Compare line against delimiter
+            printf("Delimiter '%s' found, ending heredoc.\n", delimiter);
+            break;  // Exit the loop on successful delimiter match
+        }
+
+        // Append the line to heredoc content
+        char *temp = realloc(heredoc_content, strlen(heredoc_content) + read + 1);
+        if (!temp) {
+            perror("Error reallocating memory for heredoc content");
+            free(line);
+            free(heredoc_content);
+            return (t_heredoc_result){NULL, 0}; // Return error in heredoc reading
+        }
+        heredoc_content = temp;
+        strcat(heredoc_content, line);
+        strcat(heredoc_content, "\n");
+    }
+
+    free(line);  // Cleanup line buffer
+    return (t_heredoc_result){heredoc_content, 1};  // Return successful heredoc content
+}
 
 // Function to handle redirection
-void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env)
+void	look_for_redirect(char **commands, int index, t_cmds *cmds, char **env)
 {
 	int		fd;
 	char	*file;
 	char	*expanded_file;
+ //	char	*heredoc_content;
 
+	// int		pipefd[2];
 	file = remove_quotess(commands[index + 1]);
 	if (file == NULL)
 		return ;
@@ -116,6 +224,17 @@ void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env)
 		else
 			cmds->fd_out = fd;
 	}
+	else if (commands[index][0] == '<' && commands[index][1] == '<')
+{
+    t_heredoc_result result = handle_heredoc(expanded_file);
+    if (!result.success || result.content == NULL)
+    {
+        free(expanded_file);
+        return;
+    }
+    execute_command_with_heredoc(commands[0], result.content);
+    free(result.content);
+}
 	else if (commands[index][0] == '<')
 	{
 		fd = open(expanded_file, O_RDONLY);

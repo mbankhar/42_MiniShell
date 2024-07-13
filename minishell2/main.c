@@ -6,33 +6,51 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/12 16:57:50 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/13 14:25:32 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+#include <string.h>
+
+
 
 void	check_the_line(char *line, t_exec *exec, t_cmds *cmds, char ***environ)
 {
-	char	**args;
+	char				**args;
+	char				*command;
+	char				*delimiter;
+	t_heredoc_result	heredoc_result;
 
-	// int          *exit;
-	// if (ft_strcmp(line, "exit"))
-	//  exit = handle_exit();
 	if (are_quotes_even(line) != 0 && !redirection_error_checks(line))
 	{
-		exec->number_of_pipes = count_char_occurrences(line, '|');
-		args = ft_splitspecial(line);
-		exec->tokens = get_the_token(args);
-		do_shit(args, exec, &cmds, *environ);
-		cmds->exit_code = 0;
-		count_commands(cmds, *environ);
-		if (exec->number_of_pipes == cmds->cmd_number
-			&& (exec->number_of_pipes != 0))
-			printf("Not nice error\n");
+		if (strstr(line, "<<"))
+		{
+			command = strtok(line, " ");
+			delimiter = strtok(NULL, " ");
+			heredoc_result = handle_heredoc(delimiter);
+			if (heredoc_result.success)
+			{
+				execute_command_with_heredoc(command, heredoc_result.content);
+				free(heredoc_result.content);
+			}
+			return ; // Return to main prompt after heredoc
+		}
 		else
-			execution(cmds, environ);
-		ft_free(args);
+		{
+			exec->number_of_pipes = count_char_occurrences(line, '|');
+			args = ft_splitspecial(line);
+			exec->tokens = get_the_token(args);
+			do_shit(args, exec, &cmds, *environ);
+			cmds->exit_code = 0;
+			count_commands(cmds, *environ);
+			if (exec->number_of_pipes == cmds->cmd_number
+				&& (exec->number_of_pipes != 0))
+				printf("Not nice error\n");
+			else
+				execution(cmds, environ);
+			ft_free(args);
+		}
 	}
 	else
 		printf(" syntax error near unexpected token\n");
