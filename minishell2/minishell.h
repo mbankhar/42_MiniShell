@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/12 16:58:30 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/13 14:09:20 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,11 @@ typedef struct s_cmds_arr
 extern int	g_variable;
 
 
+typedef struct s_heredoc_result {
+    char *content;
+    int success;
+} t_heredoc_result;
+
 // Functions for parsing
 int		count_char_occurrences(const char *str, char ch);
 char	**get_the_token(char **commands);
@@ -93,4 +98,10 @@ void	handle_sigquit(int sig);
 int *get_exit_status(void);
 void handle_exit(char *line);
 
+
+
+
+t_heredoc_result handle_heredoc(const char *delimiter);
+void	test_heredoc(void);
+void	execute_command_with_heredoc(char *command, char *heredoc_content);
 #endif

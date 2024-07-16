@@ -17,6 +17,21 @@
 // void	execute_command_with_heredoc(char *command, char *heredoc_content);
 
 // Add this new function
+
+
+char *extract_delimiter(char *line) {
+    char *delimiter_start = strstr(line, "<<");
+    if (!delimiter_start) return NULL;
+    delimiter_start += 2;  // Move past "<<"
+
+    // Skip any spaces after "<<"
+    while (*delimiter_start && isspace(*delimiter_start)) ++delimiter_start;
+
+    char *delimiter_end = delimiter_start;
+    while (*delimiter_end && !isspace(*delimiter_end)) ++delimiter_end;
+
+    return strndup(delimiter_start, delimiter_end - delimiter_start);
+}
 void	execute_command_with_heredoc(char *command, char *heredoc_content)
 {
 	int		pipefd[2];
