@@ -6,35 +6,51 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/13 14:25:32 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/17 14:22:45 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 #include <string.h>
 
-
-
 void	check_the_line(char *line, t_exec *exec, t_cmds *cmds, char ***environ)
 {
-	char				**args;
-	char				*command;
-	char				*delimiter;
-	t_heredoc_result	heredoc_result;
+	char	**args;
+	char	delimiter[MAX_DELIMITER_LENGTH];
+	char	*delim_start;
+	char	*delim_end;
+	size_t	delim_len;
+	int		heredoc_fd;
 
 	if (are_quotes_even(line) != 0 && !redirection_error_checks(line))
 	{
-		if (strstr(line, "<<"))
+		if (strncmp(line, "<<", 2) == 0)
 		{
-			command = strtok(line, " ");
-			delimiter = strtok(NULL, " ");
-			heredoc_result = handle_heredoc(delimiter);
-			if (heredoc_result.success)
+			delim_start = line + 2;
+			while (*delim_start == ' ')
+				delim_start++;
+			if (*delim_start == '\0')
 			{
-				execute_command_with_heredoc(command, heredoc_result.content);
-				free(heredoc_result.content);
+				printf("Error: No delimiter specified for heredoc\n");
+				return ;
 			}
-			return ; // Return to main prompt after heredoc
+			delim_end = delim_start;
+			while (*delim_end && !isspace(*delim_end))
+				delim_end++;
+			delim_len = delim_end - delim_start;
+			if (delim_len >= MAX_DELIMITER_LENGTH)
+			{
+				printf("Error: Delimiter too long\n");
+				return ;
+			}
+			strncpy(delimiter, delim_start, delim_len);
+			delimiter[delim_len] = '\0';
+			heredoc_fd = handle_heredoc(delimiter);
+			if (heredoc_fd != -1)
+			{
+				execute_command("cat", heredoc_fd);
+				close(heredoc_fd);
+			}
 		}
 		else
 		{
