@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/18 16:06:40 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/18 21:58:14 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -133,6 +133,26 @@ int error_check_on_pipe_and_redirection(char *line)
     
     return check_syntax(line, len, &in_pipe, &in_redirection, &out_redirection);
 }
+int is_special_char(char c)
+{
+    return (c == '>' || c == '<' || c == '|' || c == ';' || c == '&');
+}
+
+int is_quoted(char *str, int index)
+{
+    int in_single_quote = 0;
+    int in_double_quote = 0;
+    
+    for (int i = 0; i < index; i++)
+    {
+        if (str[i] == '\'' && !in_double_quote)
+            in_single_quote = !in_single_quote;
+        else if (str[i] == '\"' && !in_single_quote)
+            in_double_quote = !in_double_quote;
+    }
+    
+    return (in_single_quote || in_double_quote);
+}
 
 void check_the_line(char *line, t_exec *exec, t_cmds *cmds, char ***environ)
 {
@@ -194,7 +214,7 @@ int main(void)
                 printf("exit\n");
                 break;
             }
-            printf("Debug: Before check_the_line\n");
+            // printf("Debug: Before check_the_line\n");
             check_the_line(line, &exec, cmds, &environ_copy);
         }
         free(line);

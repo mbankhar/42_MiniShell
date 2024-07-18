@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   utils.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/18 10:51:09 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/11 11:02:58 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/07/18 22:02:13 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,4 +112,55 @@ void count_commands(t_cmds *cmds, char **env)
 		i++;
 	}
 	cmds->cmd_number = count;
+}
+char	*ft_strjoin_free(char *s1, char *s2)
+{
+	char	*result;
+
+	result = ft_strjoin(s1, s2);
+	free(s1);
+	return (result);
+}
+
+char	*ft_strjoin_free_char(char *s, char c)
+{
+	char	*result;
+	int		i;
+
+	result = malloc(ft_strlen(s) + 2);
+	if (!result)
+		return (NULL);
+	i = 0;
+	while (s[i])
+	{
+		result[i] = s[i];
+		i++;
+	}
+	result[i] = c;
+	result[i + 1] = '\0';
+	free(s);
+	return (result);
+}
+
+
+char *ft_strndup(const char *s, size_t n)
+{
+    char *result;
+    size_t len = ft_strnlen(s, n);
+
+    result = (char *)malloc(len + 1);
+    if (!result)
+        return NULL;
+    
+    ft_memcpy(result, s, len);
+    result[len] = '\0';
+    return result;
+}
+
+size_t ft_strnlen(const char *s, size_t maxlen)
+{
+    size_t len;
+
+    for (len = 0; len < maxlen && s[len]; len++);
+    return len;
 }

@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/18 16:26:39 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/18 22:04:38 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,13 @@ int     handle_input_redirection(char *line, int *i, char last);
 void    execute(char **env, char **cmd);
 char	*expand_env_variables(const char *str, char **env);
 void free_heredoc_content(t_cmds *cmds);
-
-
+char	*ft_strjoin_free(char *s1, char *s2);
+char	*ft_strjoin_free_char(char *s, char c);
+char    *get_env_values(char **env, const char *var);
+char	*strip_quotes(char *str);
+char    *ft_strjoin(char const *s1, char const *s2);
+char    *ft_strjoin(char const *s1, char const *s2);
+char    *ft_strndup(const char *s, size_t n);
+size_t ft_strnlen(const char *s, size_t maxlen);
+char *strip_quotes(char *str);
 #endif
