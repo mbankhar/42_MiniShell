@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtin_functions.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/15 18:45:25 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/11 11:00:22 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/07/18 18:20:08 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,15 +25,14 @@ void	ft_free(char **array)
 	free(array);
 }
 
-
 // Function to strip quotes from a string
 char	*strip_quotes(char *str)
 {
 	int	len;
 
 	len = ft_strlen(str);
-	if (len >= 2 && ((str[0] == '"' && str[len - 1] == '"')
-			|| (str[0] == '\'' && str[len - 1] == '\'')))
+	if (len >= 2 && ((str[0] == '"' && str[len - 1] == '"') || (str[0] == '\''
+				&& str[len - 1] == '\'')))
 	{
 		str[len - 1] = '\0';
 		str++;
@@ -99,8 +98,41 @@ char	*expand_variable(char *str, char **env, t_cmds *cmds)
 	return (str);
 }
 
-
 // Function to execute the echo command
+// void	execute_echo(t_cmds *cmds, char **env)
+// {
+// 	int		i;
+// 	int		newline;
+// 	int		original_stdout;
+// 	int		original_stdin;
+// 	char	*expanded_arg;
+
+// 	i = 0;
+// 	newline = 1;
+// 	original_stdout = dup(1);
+// 	original_stdin = dup(0);
+// 	if (cmds->fd_in != -2)
+// 		dup2(cmds->fd_in, 0);
+// 	if (cmds->fd_out != -2)
+// 		dup2(cmds->fd_out, 1);
+// 	if (cmds->cmd_args[++i] != NULL && ft_strcmp(cmds->cmd_args[i], "-n") == 0)
+// 		newline = 0;
+// 	while (cmds->cmd_args[i] != NULL)
+// 	{
+// 		expanded_arg = expand_variable(cmds->cmd_args[i], env, cmds);
+// 		printf("%s", strip_quotes(expanded_arg));
+// 		if (cmds->cmd_args[i + 1] != NULL)
+// 			printf(" ");
+// 		i++;
+// 	}
+// 	if (newline)
+// 		printf("\n");
+// 	dup2(original_stdout, 1);
+// 	dup2(original_stdin, 0);
+// 	close(original_stdout);
+// 	close(original_stdin);
+// }
+
 void	execute_echo(t_cmds *cmds, char **env)
 {
 	int		i;
@@ -108,8 +140,9 @@ void	execute_echo(t_cmds *cmds, char **env)
 	int		original_stdout;
 	int		original_stdin;
 	char	*expanded_arg;
+	int		first_arg;
 
-	i = 0;
+	i = 1; // Start from the first argument after "echo"
 	newline = 1;
 	original_stdout = dup(1);
 	original_stdin = dup(0);
@@ -117,14 +150,21 @@ void	execute_echo(t_cmds *cmds, char **env)
 		dup2(cmds->fd_in, 0);
 	if (cmds->fd_out != -2)
 		dup2(cmds->fd_out, 1);
-	if (cmds->cmd_args[++i] != NULL && ft_strcmp(cmds->cmd_args[i], "-n") == 0)
+	// Handle multiple -n options
+	while (cmds->cmd_args[i] != NULL && ft_strcmp(cmds->cmd_args[i], "-n") == 0)
+	{
 		newline = 0;
+		i++;
+	}
+	// Print arguments
+	first_arg = 1;
 	while (cmds->cmd_args[i] != NULL)
 	{
+		if (!first_arg)
+			printf(" ");
 		expanded_arg = expand_variable(cmds->cmd_args[i], env, cmds);
 		printf("%s", strip_quotes(expanded_arg));
-		if (cmds->cmd_args[i + 1] != NULL)
-			printf(" ");
+		first_arg = 0;
 		i++;
 	}
 	if (newline)
@@ -134,7 +174,6 @@ void	execute_echo(t_cmds *cmds, char **env)
 	close(original_stdout);
 	close(original_stdin);
 }
-
 
 void	print_env(char **env)
 {
