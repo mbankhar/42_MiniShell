@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/16 18:05:46 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/07/18 16:06:40 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,8 +48,13 @@ int handle_output_redirection(char *line, int *i, char last)
     return 0;
 }
 
-int handle_input_redirection(char last)
+int handle_input_redirection(char *line, int *i, char last)
 {
+    if (line[*i + 1] == '<')  // Check for heredoc
+    {
+        (*i)++;  // Move past the second '<'
+        return 0;  // Heredoc is valid, so return 0
+    }
     if (last == '<' || last == '\0')
     {
         printf("Error: Invalid input redirection.\n");
@@ -75,34 +80,34 @@ int error_check_end_conditions(char last_char, int in_pipe, int in_redirection, 
 
 int handle_special_characters(char current, char last_char, int *in_pipe, int *in_redirection, int *out_redirection, int *i, char *line)
 {
-	if (current == '|')
-	{
-		if (handle_pipe_error(last_char))
-			return (1);
-		*in_pipe = 1;
-	}
-	else if (current == '>')
-	{
-		if (handle_output_redirection(line, i, last_char))
-			return (1);
-		*out_redirection = 1;
-	}
-	else if (current == '<')
-	{
-		if (handle_input_redirection(last_char))
-			return (1);
-		*in_redirection = 1;
-	}
-	else
-	{
-		if (*in_pipe && current != ' ')
-			*in_pipe = 0;
-		if (*in_redirection && current != ' ')
-			*in_redirection = 0;
-		if (*out_redirection && current != ' ')
-			*out_redirection = 0;
-	}
-	return (0);
+    if (current == '|')
+    {
+        if (handle_pipe_error(last_char))
+            return (1);
+        *in_pipe = 1;
+    }
+    else if (current == '>')
+    {
+        if (handle_output_redirection(line, i, last_char))
+            return (1);
+        *out_redirection = 1;
+    }
+    else if (current == '<')
+    {
+        if (handle_input_redirection(line, i, last_char))
+            return (1);
+        *in_redirection = 1;
+    }
+    else
+    {
+        if (*in_pipe && current != ' ')
+            *in_pipe = 0;
+        if (*in_redirection && current != ' ')
+            *in_redirection = 0;
+        if (*out_redirection && current != ' ')
+            *out_redirection = 0;
+    }
+    return (0);
 }
 
 int check_syntax(char *line, int len, int *in_pipe, int *in_redirection, int *out_redirection)
@@ -129,66 +134,70 @@ int error_check_on_pipe_and_redirection(char *line)
     return check_syntax(line, len, &in_pipe, &in_redirection, &out_redirection);
 }
 
-
-void	check_the_line(char *line, t_exec *exec, t_cmds *cmds, char ***environ)
+void check_the_line(char *line, t_exec *exec, t_cmds *cmds, char ***environ)
 {
-	char		**args;
+    char        **args;
 
-	if (are_quotes_even(line) != 0 && !redirection_error_checks(line) && !error_check_on_pipe_and_redirection(line))
-	{
-		exec->number_of_pipes = count_char_occurrences(line, '|');
-		args = ft_splitspecial(line);
-		exec->tokens = get_the_token(args);
-		do_shit(args, exec, &cmds, *environ);
-		cmds->exit_code = 0;
-		count_commands(cmds, *environ);
-		if (exec->number_of_pipes == cmds->cmd_number
-			&& (exec->number_of_pipes != 0))
-			printf("Not nice error\n");
-		else
-			execution(cmds, environ);
-		ft_free(args);
-	}
-	else
-		printf(" syntax error near unexpected token\n");
+    if (are_quotes_even(line) != 0 && !redirection_error_checks(line) && !error_check_on_pipe_and_redirection(line))
+    {
+        exec->number_of_pipes = count_char_occurrences(line, '|');
+        args = ft_splitspecial(line);
+        exec->tokens = get_the_token(args);
+        do_shit(args, exec, &cmds, *environ);
+        cmds->exit_code = 0;
+        count_commands(cmds, *environ);
+        if (exec->number_of_pipes == cmds->cmd_number && (exec->number_of_pipes != 0))
+            printf("Not nice error\n");
+        else
+            execution(cmds, environ);
+            
+        for (int i = 0; i < exec->number_of_pipes + 1; i++)
+        {
+            free_heredoc_content(&cmds[i]);
+        }
+        ft_free(args);
+    }
+    else
+        printf(" syntax error near unexpected token\n");
 }
 
-int	g_variable = 0;
+int g_variable = 0;
 
-int	main(void)
+int main(void)
 {
-	extern char **environ;
-	char		*line;
-	t_exec		exec;
-	t_cmds		*cmds;
-	char		**environ_copy;
+    extern char **environ;
+    char        *line;
+    t_exec      exec;
+    t_cmds      *cmds;
+    char        **environ_copy;
 
-	cmds = NULL;
-	signal(SIGINT, handle_sigint);
-	signal(SIGTSTP, handle_sigtstp);
-	signal(SIGQUIT, handle_sigquit);
-	if (environ[0] == NULL)
-		environ = init_env(environ);
-	else
-		environ_copy = duplicate_environ(environ);
-	while (1)
-	{
-		g_variable = 0;
-		line = readline("minishell> ");
-		if (!line)
-			break ;
-		if (strlen(line) > 0)
-		{
-			add_history(line);
-			if (ft_strcmp(line, "exit") == 0)
-			{
-				free(line);
-				printf("exit\n");
-				break ;
-			}
-			check_the_line(line, &exec, cmds, &environ_copy);
-		}
-		free(line);
-	}
-	return (0);
+    cmds = NULL;
+    signal(SIGINT, handle_sigint);
+    signal(SIGTSTP, handle_sigtstp);
+    signal(SIGQUIT, handle_sigquit);
+    if (environ[0] == NULL)
+        environ = init_env(environ);
+    else
+        environ_copy = duplicate_environ(environ);
+    while (1)
+    {
+        g_variable = 0;
+        line = readline("minishell> ");
+        if (!line)
+            break;
+        if (strlen(line) > 0)
+        {
+            add_history(line);
+            if (ft_strcmp(line, "exit") == 0)
+            {
+                free(line);
+                printf("exit\n");
+                break;
+            }
+            printf("Debug: Before check_the_line\n");
+            check_the_line(line, &exec, cmds, &environ_copy);
+        }
+        free(line);
+    }
+    return (0);
 }

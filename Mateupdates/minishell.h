@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minishell.h                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/11 10:21:30 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/07/18 16:26:39 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,9 @@
 # include <sys/stat.h>
 # include <signal.h>
 
+
+#define MAX_DELIMITER_LENGTH 256
+
 typedef struct s_exec
 {
 	int			number_of_pipes;
@@ -47,6 +50,9 @@ typedef struct s_cmds_arr
 	int			fd_out;
 	int			pid;
 	int			exit_code;
+    char    **heredoc_content;  // This should be a double pointer
+		    int     heredoc_line_count;
+
 }	t_cmds;
 
 extern int	g_variable;
@@ -87,5 +93,12 @@ int		ft_strcmp(const char *s1, const char *s2);
 void	handle_sigint(int sig);
 void	handle_sigtstp(int sig);
 void	handle_sigquit(int sig);
+int     handle_heredoc(char *delimiter, t_cmds *cmds, char **env);
+void    look_for_heredoc(char **commands, int index, t_cmds *cmds, char **env);
+int     handle_input_redirection(char *line, int *i, char last);
+void    execute(char **env, char **cmd);
+char	*expand_env_variables(const char *str, char **env);
+void free_heredoc_content(t_cmds *cmds);
+
 
 #endif
