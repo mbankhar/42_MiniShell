@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 11:17:31 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/18 15:17:22 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/19 18:50:43 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -112,7 +112,10 @@ void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env)
 	{
 		fd = open(expanded_file, O_WRONLY | O_CREAT | O_APPEND, 0644);
 		if (fd == -1)
+		{
 			perror("Failed to open file for appending");
+			g_exit_status = 1;
+		}
 		else
 			cmds->fd_out = fd;
 	}
@@ -120,7 +123,11 @@ void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env)
 	{
 		fd = open(expanded_file, O_RDONLY);
 		if (fd == -1)
+		{
 			perror("Failed to open file for reading");
+			g_exit_status = 1;
+
+		}
 		else
 			cmds->fd_in = fd;
 	}
@@ -128,7 +135,11 @@ void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env)
 	{
 		fd = open(expanded_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
 		if (fd == -1)
+		{
 			perror("Failed to open file for writing");
+			g_exit_status = 1;
+
+		}
 		else
 			cmds->fd_out = fd;
 	}

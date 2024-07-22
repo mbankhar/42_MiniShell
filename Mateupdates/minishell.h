@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/18 22:04:38 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/19 18:48:02 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@
 # include <sys/stat.h>
 # include <signal.h>
 
+extern int g_exit_status;
 
 #define MAX_DELIMITER_LENGTH 256
 
@@ -108,4 +109,12 @@ char    *ft_strjoin(char const *s1, char const *s2);
 char    *ft_strndup(const char *s, size_t n);
 size_t ft_strnlen(const char *s, size_t maxlen);
 char *strip_quotes(char *str);
+int handle_exit(char **args);
+int is_valid_exit_arg(const char *arg);
+long long ft_atoll(const char *str);
+char *trim_quotes(char *str);
+char *trim_quotes_and_spaces(char *str);
+int is_valid_identifier(const char *str);
+void remove_env_var(char ***env, const char *var);
+
 #endif

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   change_directory.c                                 :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 10:32:43 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/17 10:13:32 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/07/19 18:53:46 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,38 +105,87 @@ char *get_home_dir(char **env)
 	return (env[home_index] + 5);
 }
 
+// void change_directory(char *path, char ***env)
+// {
+// 	char	buffer[PATH_MAX];
+
+// 	if (path == NULL || (path[0] == '\0'))
+// 	{
+// 		path = get_home_dir(*env);
+// 		if (path == NULL)
+// 			return ;
+// 	}
+// 	else if (path[0] == '-' && path[1] == '\0')
+// 	{
+// 		path = find_oldpwd(env);
+// 		if (path == NULL)
+// 			return ;
+// 		printf("%s\n", path);
+// 	}
+// 	if (getcwd(buffer, sizeof(buffer)) == NULL)
+// 	{
+// 		perror("getcwd");
+// 		return ;
+// 	}
+// 	update_env_var(env, "OLDPWD", buffer);
+// 	if (chdir(path) == -1)
+// 	{
+// 		perror("chdir");
+// 		return ;
+// 	}
+// 	if (getcwd(buffer, sizeof(buffer)) == NULL)
+// 	{
+// 		perror("getcwd");
+// 		return ;
+// 	}
+// 	update_env_var(env, "PWD", buffer);
+// }
+
+
 void change_directory(char *path, char ***env)
 {
-	char	buffer[PATH_MAX];
+    char    buffer[PATH_MAX];
 
-	if (path == NULL || (path[0] == '\0'))
-	{
-		path = get_home_dir(*env);
-		if (path == NULL)
-			return ;
-	}
-	else if (path[0] == '-' && path[1] == '\0')
-	{
-		path = find_oldpwd(env);
-		if (path == NULL)
-			return ;
-		printf("%s\n", path);
-	}
-	if (getcwd(buffer, sizeof(buffer)) == NULL)
-	{
-		perror("getcwd");
-		return ;
-	}
-	update_env_var(env, "OLDPWD", buffer);
-	if (chdir(path) == -1)
-	{
-		perror("chdir");
-		return ;
-	}
-	if (getcwd(buffer, sizeof(buffer)) == NULL)
-	{
-		perror("getcwd");
-		return ;
-	}
-	update_env_var(env, "PWD", buffer);
+    if (path == NULL || (path[0] == '\0'))
+    {
+        path = get_home_dir(*env);
+        if (path == NULL)
+        {
+            ft_putendl_fd("minishell: cd: HOME not set", 2);
+            g_exit_status = 1;
+            return;
+        }
+    }
+    else if (path[0] == '-' && path[1] == '\0')
+    {
+        path = find_oldpwd(env);
+        if (path == NULL)
+        {
+            ft_putendl_fd("minishell: cd: OLDPWD not set", 2);
+            g_exit_status = 1;
+            return;
+        }
+        printf("%s\n", path);
+    }
+    if (getcwd(buffer, sizeof(buffer)) == NULL)
+    {
+        perror("getcwd");
+        g_exit_status = 1;
+        return;
+    }
+    if (chdir(path) == -1)
+    {
+        perror("chdir");
+        g_exit_status = 1;
+        return;
+    }
+    update_env_var(env, "OLDPWD", buffer);
+    if (getcwd(buffer, sizeof(buffer)) == NULL)
+    {
+        perror("getcwd");
+        g_exit_status = 1;
+        return;
+    }
+    update_env_var(env, "PWD", buffer);
+    g_exit_status = 0;
 }

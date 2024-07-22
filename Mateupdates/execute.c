@@ -6,11 +6,14 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/18 16:20:43 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/19 18:55:25 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+#include <errno.h>
+
+int g_exit_status = 0;
 
 void	execute(char **env, char **cmd);
 
@@ -167,11 +170,16 @@ int execution(t_cmds *cmds, char ***env)
         while (++i < cmds->size)
         {
             waitpid(cmds[i].pid, &status, 0);
+            if (WIFEXITED(status))
+                g_exit_status = WEXITSTATUS(status);
+            else if (WIFSIGNALED(status))
+                g_exit_status = 128 + WTERMSIG(status);
             free_heredoc_content(&cmds[i]);
         }
-        cmds->exit_code = status;
+        cmds->exit_code = g_exit_status;
     }
-    return (0);
+    return g_exit_status;
+
 }
 
 	void execute(char **env, char **cmd)
@@ -188,14 +196,17 @@ int execution(t_cmds *cmds, char ***env)
 			ft_putstr_fd(" ", 2);
 			ft_putstr_fd("command not found", 2);
 			write(2, "\n", 1);
-			exit(EXIT_FAILURE);
+			exit(127);
 		}
 		else
 		{
 			if (execve(path_cmd, cmd, env) == -1)
-			{
-				perror("execve");
-				exit(EXIT_FAILURE);
-			}
+        {
+            perror("minishell");
+            if (errno == ENOENT)
+                exit(127);
+            else
+                exit(126);
+        }
 		}
 	}

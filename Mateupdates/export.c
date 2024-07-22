@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   export.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 11:11:08 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/10 16:18:23 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/07/19 19:06:40 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -260,31 +260,59 @@ void execute_export(t_cmds *cmds, char ***env)
 // Execute the unset command
 void execute_unset(t_cmds *cmds, char ***env)
 {
-	int		i;
-	char	*var;
-	int		idx;
+    int     i;
+    char    *var;
 
-	i = 1;
-	while (cmds->cmd_args[i] != NULL)
-	{
-		var = cmds->cmd_args[i];
-		if (is_alphanumeric(var))
-		{
-			idx = find_env_var(*env, var);
-			if (idx != -1)
-			{
-				while ((*env)[idx + 1] != NULL)
-				{
-					(*env)[idx] = (*env)[idx + 1];
-					idx++;
-				}
-				(*env)[idx] = NULL;
-			}
-			else
-				printf("unset: variable not found: %s\n", var);
-		}
-		else
-			printf("unset: invalid variable name: %s\n", var);
-		i++;
-	}
+    i = 1;
+    while (cmds->cmd_args[i] != NULL)
+    {
+        var = cmds->cmd_args[i];
+        if (is_valid_identifier(var))
+        {
+            remove_env_var(env, var);
+            // No message printed for non-existent variables
+        }
+        else
+        {
+            ft_putstr_fd("minishell: unset: `", 2);
+            ft_putstr_fd(var, 2);
+            ft_putendl_fd("': not a valid identifier", 2);
+        }
+        i++;
+    }
+}
+int is_valid_identifier(const char *str)
+{
+    if (!str || !*str || ft_isdigit(*str))
+        return 0;
+    
+    while (*str)
+    {
+        if (!ft_isalnum(*str) && *str != '_')
+            return 0;
+        str++;
+    }
+    return 1;
+}
+
+void remove_env_var(char ***env, const char *var)
+{
+    int i = 0;
+    int var_len = ft_strlen(var);
+
+    while ((*env)[i])
+    {
+        if (ft_strncmp((*env)[i], var, var_len) == 0 && (*env)[i][var_len] == '=')
+        {
+            free((*env)[i]);
+            while ((*env)[i + 1])
+            {
+                (*env)[i] = (*env)[i + 1];
+                i++;
+            }
+            (*env)[i] = NULL;
+            break;
+        }
+        i++;
+    }
 }

@@ -4,7 +4,7 @@ LIBFT   := libft
 INCLUDES := -I $(LIBFT)
 LIBFT_LIB := $(LIBFT)/libft.a
 SRCS    := main.c split.c quotes_check.c get_path.c execute.c \
-token.c parse.c builtin_functions.c export.c expand.c utils.c signals.c change_directory.c redirection.c heredoc.c
+token.c parse.c builtin_functions.c export.c expand.c utils.c signals.c change_directory.c redirection.c heredoc.c exit.c
 OBJS    := ${SRCS:.c=.o}
 
 CFLAGS  := -Wextra -Wall -Werror -g
