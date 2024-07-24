@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 10:32:43 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/19 18:53:46 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/24 21:45:47 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,9 +142,61 @@ char *get_home_dir(char **env)
 // }
 
 
-void change_directory(char *path, char ***env)
+// int change_directory(char *path, char ***env, t_shell *shell)
+// {
+//     char buffer[PATH_MAX];
+
+//     if (path == NULL || (path[0] == '\0'))
+//     {
+//         path = get_home_dir(*env);
+//         if (path == NULL)
+//         {
+//             ft_putendl_fd("minishell: cd: HOME not set", 2);
+//             shell->exit_status = 1;
+//             return 1;
+//         }
+//     }
+//     else if (path[0] == '-' && path[1] == '\0')
+//     {
+//         path = find_oldpwd(env);
+//         if (path == NULL)
+//         {
+//             ft_putendl_fd("minishell: cd: OLDPWD not set", 2);
+//             shell->exit_status = 1;
+//             return 1;
+//         }
+//         printf("%s\n", path);
+//     }
+//     if (getcwd(buffer, sizeof(buffer)) == NULL)
+//     {
+//         perror("getcwd");
+//         shell->exit_status = 1;
+//         return 1;
+//     }
+//     if (chdir(path) == -1)
+//     {
+//         perror("chdir");
+//         shell->exit_status = 1;
+//         return 1;
+//     }
+//     update_env_var(env, "OLDPWD", buffer);
+//     if (getcwd(buffer, sizeof(buffer)) == NULL)
+//     {
+//         perror("getcwd");
+//         shell->exit_status = 1;
+//         return 1;
+//     }
+//     update_env_var(env, "PWD", buffer);
+//     shell->exit_status = 0;
+//     return 0;
+// }
+
+
+
+int change_directory(char *path, char ***env, t_shell *shell)
 {
-    char    buffer[PATH_MAX];
+    char buffer[PATH_MAX];
+    char *expanded_path = NULL;
 
     if (path == NULL || (path[0] == '\0'))
     {
@@ -152,8 +204,8 @@ void change_directory(char *path, char ***env)
         if (path == NULL)
         {
             ft_putendl_fd("minishell: cd: HOME not set", 2);
-            g_exit_status = 1;
-            return;
+            shell->exit_status = 1;
+            return 1;
         }
     }
     else if (path[0] == '-' && path[1] == '\0')
@@ -162,30 +214,45 @@ void change_directory(char *path, char ***env)
         if (path == NULL)
         {
             ft_putendl_fd("minishell: cd: OLDPWD not set", 2);
-            g_exit_status = 1;
-            return;
+            shell->exit_status = 1;
+            return 1;
         }
         printf("%s\n", path);
     }
+    else
+    {
+        expanded_path = expand_env_variables(path, *env);
+        path = expanded_path;
+    }
+
     if (getcwd(buffer, sizeof(buffer)) == NULL)
     {
         perror("getcwd");
-        g_exit_status = 1;
-        return;
+        shell->exit_status = 1;
+        if (expanded_path)
+            free(expanded_path);
+        return 1;
     }
     if (chdir(path) == -1)
     {
         perror("chdir");
-        g_exit_status = 1;
-        return;
+        shell->exit_status = 1;
+        if (expanded_path)
+            free(expanded_path);
+        return 1;
     }
     update_env_var(env, "OLDPWD", buffer);
     if (getcwd(buffer, sizeof(buffer)) == NULL)
     {
         perror("getcwd");
-        g_exit_status = 1;
-        return;
+        shell->exit_status = 1;
+        if (expanded_path)
+            free(expanded_path);
+        return 1;
     }
     update_env_var(env, "PWD", buffer);
-    g_exit_status = 0;
+    shell->exit_status = 0;
+    if (expanded_path)
+        free(expanded_path);
+    return 0;
 }

@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/19 22:06:58 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/24 21:04:20 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -166,92 +166,93 @@ int	is_quoted(char *str, int index)
 	return (in_single_quote || in_double_quote);
 }
 
-void	check_the_line(char *line, t_exec *exec, t_cmds *cmds, char ***environ)
+void check_the_line(char *line, t_exec *exec, t_cmds *cmds, char ***environ, t_shell *shell)
 {
-	char	**args;
-	
+    char **args;
 
-	if (are_quotes_even(line) != 0 && !redirection_error_checks(line)
-		&& !error_check_on_pipe_and_redirection(line))
-	{
-		exec->number_of_pipes = count_char_occurrences(line, '|');
-		args = ft_splitspecial(line);
-		exec->tokens = get_the_token(args);
-		do_shit(args, exec, &cmds, *environ);
-		cmds->exit_code = 0;
-		count_commands(cmds, *environ);
-		if (exec->number_of_pipes == cmds->cmd_number
-			&& (exec->number_of_pipes != 0))
-			printf("Not nice error\n");
-		else
-			execution(cmds, environ);
-		for (int i = 0; i < exec->number_of_pipes + 1; i++)
-		{
-			free_heredoc_content(&cmds[i]);
-		}
-		ft_free(args);
-	}
-	else
-		printf(" syntax error near unexpected token\n");
+    if (are_quotes_even(line) != 0 && !redirection_error_checks(line)
+        && !error_check_on_pipe_and_redirection(line))
+    {
+        exec->number_of_pipes = count_char_occurrences(line, '|');
+        args = ft_splitspecial(line);
+        exec->tokens = get_the_token(args);
+        do_shit(args, exec, &cmds, *environ, shell);
+        cmds->exit_code = 0; // Ensure exit_code is initialized
+        count_commands(cmds, *environ);
+        if (exec->number_of_pipes == cmds->cmd_number
+            && (exec->number_of_pipes != 0))
+            printf("Not nice error\n");
+        else
+            shell->exit_status = execution(cmds, environ, shell);
+     //   printf("Debug: After execution, exit_status: %d\n", shell->exit_status); // Debugging line
+        for (int i = 0; i < exec->number_of_pipes + 1; i++)
+        {
+            free_heredoc_content(&cmds[i]);
+        }
+        ft_free(args);
+    }
+    else
+    {
+     //   printf(" syntax error near unexpected token\n");
+        shell->exit_status = 2; // Set exit status for syntax error
+      //  printf("Debug: Syntax error, exit_status: %d\n", shell->exit_status); // Debugging line
+    }
 }
 
 int		g_variable = 0;
 
-int	main(void)
+int main(void)
 {
-	extern char **environ;
-	char *line;
-	t_exec exec;
-	t_cmds *cmds;
-    char        **args;  
-	char **environ_copy;
+    extern char **environ;
+    char *line;
+    t_exec exec;
+    t_cmds *cmds;
+    char **args;
+    char **environ_copy;
+    t_shell shell;
 
-	cmds = NULL;
-	signal(SIGINT, handle_sigint);
-	signal(SIGTSTP, handle_sigtstp);
-	signal(SIGQUIT, handle_sigquit);
-	if (environ[0] == NULL)
-		environ = init_env(environ);
-	else
-		environ_copy = duplicate_environ(environ);
+    cmds = NULL;
+    signal(SIGINT, handle_sigint);
+    signal(SIGTSTP, handle_sigtstp);
+    signal(SIGQUIT, handle_sigquit);
+    if (environ[0] == NULL)
+        environ = init_env(environ);
+    else
+        environ_copy = duplicate_environ(environ);
 
-     int last_exit_code = 0;  
+    shell.exit_status = 0;
 
-	while (1)
-	{
-		g_variable = 0;
-		line = readline("minishell> ");
-		if (!line)
-			break ;
-		if (strlen(line) > 0)
-		{
-			add_history(line);
-			args = ft_splitspecial(line);
-			if (args && args[0] && ft_strcmp(args[0], "exit") == 0)
-			{
-				int exit_status = handle_exit(args);
-				if (exit_status == 1) // If not "too many arguments"
-				{
-	               last_exit_code = 1;
-
-				}
+    while (1)
+    {
+        line = readline("minishell> ");
+        if (!line)
+            break;
+        if (strlen(line) > 0)
+        {
+            add_history(line);
+            args = ft_splitspecial(line);
+            if (args && args[0] && ft_strcmp(args[0], "exit") == 0)
+            {
+                int exit_status = handle_exit(args);
+                if (exit_status == 1) // If not "too many arguments"
+                {
+                    shell.exit_status = 1;
+                }
                 else
                 {
                     ft_free(args);
-					free(line);
-					exit(exit_status);
-
+                    free(line);
+                    exit(exit_status);
                 }
-			}
-			else
-			{
-				check_the_line(line, &exec, cmds, &environ_copy);
-			}
-			ft_free(args);
-		}
-		free(line);
-	}
-	    return g_exit_status;
-
-
+            }
+            else
+            {
+                check_the_line(line, &exec, cmds, &environ_copy, &shell);
+            }
+           // printf("Debug: After check_the_line, exit_status: %d\n", shell.exit_status); // Debugging line
+            ft_free(args);
+        }
+        free(line);
+    }
+    return shell.exit_status;
 }

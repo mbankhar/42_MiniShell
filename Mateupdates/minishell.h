@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/19 18:48:02 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/24 21:56:22 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,10 @@
 # include <sys/stat.h>
 # include <signal.h>
 
-extern int g_exit_status;
+typedef struct s_shell
+{
+    int exit_status;
+} t_shell;
 
 #define MAX_DELIMITER_LENGTH 256
 
@@ -64,25 +67,25 @@ int		count_char_occurrences(const char *str, char ch);
 char	**get_the_token(char **commands);
 int		get_token_number(char **tokens, char **env);
 int		are_quotes_even(const char *str);
-void	look_for_redirect(char **commands, int index, t_cmds *cmds, char **env);
+//void	look_for_redirect(char **commands, int index, t_cmds *cmds, char **env);
 char	**ft_splitspecial(char const *s);
-void	do_shit(char **args, t_exec *exec, t_cmds **cmds_ptr, char **env);
+void	do_shit(char **args, t_exec *exec, t_cmds **cmds_ptr, char **env, t_shell *shell);
 char	**init_env(char **env);
 int		redirection_error_checks(char *line);
 char	**duplicate_environ(char **str);
 void	count_commands(t_cmds *cmds, char **env);
-void	look_for_redirect(char **commands, int index, t_cmds *cmds, char **env);
+void	look_for_redirect(char **commands, int index, t_cmds *cmds, char **env, t_shell *shell);
 // Builtin functions
-void	execute_echo(t_cmds *cmds, char **env);
-void	execute_export(t_cmds *cmds, char ***env);
-void	execute_unset(t_cmds *cmds, char ***env);
-void	change_directory(char *path, char ***env);
+int		execute_echo(t_cmds *cmds, char **env, t_shell *shell);
+int		execute_export(t_cmds *cmds, char ***env);
+int		execute_unset(t_cmds *cmds, char ***env);
+int		change_directory(char *path, char ***env, t_shell *shell);
 void	print_env(char **env);
 void	pwd(char **env);
 // Execution functions
 char	*altpath(char **env, char *cmd, int i);
 char	*get_path(char **env, char *cmd);
-int		execution(t_cmds *cmds, char ***env);
+int		execution(t_cmds *cmds, char ***env, t_shell *shell);
 void	remove_quotes(char **args);
 void	expand_in_2darray(char ***cmd, char **env);
 char	*get_env_values(char **env, const char *var);
@@ -97,8 +100,8 @@ void	handle_sigquit(int sig);
 int     handle_heredoc(char *delimiter, t_cmds *cmds, char **env);
 void    look_for_heredoc(char **commands, int index, t_cmds *cmds, char **env);
 int     handle_input_redirection(char *line, int *i, char last);
-void    execute(char **env, char **cmd);
-char	*expand_env_variables(const char *str, char **env);
+void    execute(char **env, char **cmd, t_shell *shell);
+char	*expand_env_variables(const char *str, char **env );
 void free_heredoc_content(t_cmds *cmds);
 char	*ft_strjoin_free(char *s1, char *s2);
 char	*ft_strjoin_free_char(char *s, char c);
@@ -116,5 +119,5 @@ char *trim_quotes(char *str);
 char *trim_quotes_and_spaces(char *str);
 int is_valid_identifier(const char *str);
 void remove_env_var(char ***env, const char *var);
-
+int execute_pwd(char **cmd_args);
 #endif

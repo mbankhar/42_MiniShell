@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/08 11:11:08 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/19 19:06:40 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/24 21:20:16 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ void print_envs(char **env);
 void extract_var_value(char *arg, char *var, char **value, int *append);
 void update_existing_var(char ***env, int idx, const char *var, const char *value, int append);
 void add_new_var(char ***env, const char *var, const char *value);
-void execute_export(t_cmds *cmds, char ***env);
+int execute_export(t_cmds *cmds, char ***env);
 
 // Count the size of the environment array
 int count_env_size(char **env)
@@ -207,24 +207,25 @@ void add_new_var(char ***env, const char *var, const char *value)
 }
 
 
-void execute_export(t_cmds *cmds, char ***env)
+int execute_export(t_cmds *cmds, char ***env)
 {
     int i;
     int idx;
     char var[256];
     char *value;
     int append;
+    int exit_code = 0;
 
     i = 1;
     if (cmds->cmd_args[1] == NULL)
     {
         print_envs(*env);
-        return;
+        return 0;
     }
     while (cmds->cmd_args[i] != NULL)
     {
         extract_var_value(cmds->cmd_args[i], var, &value, &append);
-        if (is_alphanumeric(var))
+        if (is_valid_identifier(var))
         {
             if (value != NULL || append)
             {
@@ -249,21 +250,29 @@ void execute_export(t_cmds *cmds, char ***env)
         }
         else
         {
-            fprintf(stderr, "export: invalid variable name: %s\n", var);
+            fprintf(stderr, "export: `%s': not a valid identifier\n", cmds->cmd_args[i]);
+            exit_code = 1;
         }
         i++;
     }
+    return exit_code;
 }
 
 
 
 // Execute the unset command
-void execute_unset(t_cmds *cmds, char ***env)
+int execute_unset(t_cmds *cmds, char ***env)
 {
-    int     i;
-    char    *var;
+    int i;
+    char *var;
+    int exit_code = 0;
 
     i = 1;
+    if (cmds->cmd_args[i] == NULL)
+    {
+        return 0; // Bash returns 0 for missing argument without printing an error
+    }
+
     while (cmds->cmd_args[i] != NULL)
     {
         var = cmds->cmd_args[i];
@@ -274,12 +283,12 @@ void execute_unset(t_cmds *cmds, char ***env)
         }
         else
         {
-            ft_putstr_fd("minishell: unset: `", 2);
-            ft_putstr_fd(var, 2);
-            ft_putendl_fd("': not a valid identifier", 2);
+            fprintf(stderr, "unset: `%s': not a valid identifier\n", var);
+            exit_code = 1;
         }
         i++;
     }
+    return exit_code;
 }
 int is_valid_identifier(const char *str)
 {

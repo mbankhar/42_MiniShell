@@ -6,16 +6,15 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/19 18:55:25 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/24 23:04:25 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 #include <errno.h>
 
-int g_exit_status = 0;
 
-void	execute(char **env, char **cmd);
+void execute(char **env, char **cmd, t_shell *shell);
 
 int	is_builtin(t_cmds *cmds)
 {
@@ -34,27 +33,61 @@ int	is_builtin(t_cmds *cmds)
 	else
 		return (0);
 }
-void	execute_builtin(t_cmds *cmds, char ***env)
+
+int handle_redirections(char **cmd, t_cmds *cmds, char **env, t_shell *shell)
 {
-	if (ft_strcmp(cmds[0].cmd_args[0], "cd") == 0)
-		change_directory(cmds[0].cmd_args[1], env);
-	else if (ft_strcmp(cmds[0].cmd_args[0], "echo") == 0)
-		execute_echo(cmds, *env);
-	else if (ft_strcmp(cmds[0].cmd_args[0], "export") == 0)
-		execute_export(cmds, env);
-	else if (ft_strcmp(cmds[0].cmd_args[0], "unset") == 0)
-	{
-		if (cmds[0].cmd_args[1] == NULL)
-			fprintf(stderr, "unset: missing argument\n");
-		else
-			execute_unset(cmds, env);
-	}
-	else if (ft_strcmp(cmds[0].cmd_args[0], "env") == 0)
-		print_env(*env);
+    int i = 0;
+
+    //printf("Debug: Entering handle_redirections\n");
+
+    while (cmd[i] != NULL)
+    {
+       // printf("Debug: Processing cmd[%d]: %s\n", i, cmd[i]);
+        if (cmd[i][0] == '<' || cmd[i][0] == '>')
+        {
+            look_for_redirect(cmd, i, cmds, env, shell);
+            if (shell->exit_status == 1)
+            {
+                return 1;
+            }
+            i += 2;
+        }
+        else
+        {
+            i++;
+        }
+    }
+
+  //  printf("Debug: Exiting handle_redirections\n");
+    return 0;
 }
 
+int execute_builtin(t_cmds *cmds, char ***env, t_shell *shell)
+{
+   if (ft_strcmp(cmds[0].cmd_args[0], "cd") == 0)
+    {
+        // Ignore extra arguments for cd
+        return change_directory(cmds[0].cmd_args[1], env, shell);
+    }
+    else if (ft_strcmp(cmds[0].cmd_args[0], "echo") == 0)
+        return execute_echo(cmds, *env, shell);
+    else if (ft_strcmp(cmds[0].cmd_args[0], "export") == 0)
+        return execute_export(cmds, env);
+    else if (ft_strcmp(cmds[0].cmd_args[0], "unset") == 0)
+        return execute_unset(cmds, env);
+    else if (ft_strcmp(cmds[0].cmd_args[0], "env") == 0)
+    {
+        print_env(*env);
+        return 0;
+    }
+     else if (ft_strcmp(cmds[0].cmd_args[0], "pwd") == 0)
+    {
+        return execute_pwd(cmds[0].cmd_args);
+    }
+    return 1;
+}
 // Execute a single command
-void	execute(char **env, char **cmd);
+// void	execute(char **env, char **cmd, t_shell *shell);
 
 int	*get_exit(void)
 {
@@ -63,7 +96,8 @@ int	*get_exit(void)
 	return (&exitcode);
 }
 
-int execution(t_cmds *cmds, char ***env)
+
+int execution(t_cmds *cmds, char ***env, t_shell *shell)
 {
     int pipefd[2];
     int prev_fd;
@@ -74,7 +108,12 @@ int execution(t_cmds *cmds, char ***env)
     prev_fd = -1;
     i = -1;
     if (cmds->cmd_number == 1 && is_builtin(cmds))
-        execute_builtin(cmds, env);
+    {
+        shell->exit_status = execute_builtin(cmds, env, shell);
+        cmds->exit_code = shell->exit_status;
+        //printf("Debug: Builtin command executed, exit_code: %d\n", cmds->exit_code); // Debugging line
+        return shell->exit_status;
+    }
     else
     {
         while (++i < cmds->size)
@@ -152,7 +191,7 @@ int execution(t_cmds *cmds, char ***env)
                     dup2(heredoc_pipe[0], STDIN_FILENO);
                     close(heredoc_pipe[0]);
                 }
-                execute(*env, cmds[i].cmd_args);
+                execute(*env, cmds[i].cmd_args, shell);
                 exit(EXIT_SUCCESS);
             }
             else
@@ -171,42 +210,66 @@ int execution(t_cmds *cmds, char ***env)
         {
             waitpid(cmds[i].pid, &status, 0);
             if (WIFEXITED(status))
-                g_exit_status = WEXITSTATUS(status);
+                shell->exit_status = WEXITSTATUS(status);
             else if (WIFSIGNALED(status))
-                g_exit_status = 128 + WTERMSIG(status);
+                shell->exit_status = 128 + WTERMSIG(status);
+            cmds[i].exit_code = shell->exit_status; // Update cmds->exit_code
+          //  printf("Debug: Command executed, exit_code: %d\n", cmds[i].exit_code); // Debugging line
             free_heredoc_content(&cmds[i]);
         }
-        cmds->exit_code = g_exit_status;
     }
-    return g_exit_status;
-
+    return shell->exit_status;
 }
 
-	void execute(char **env, char **cmd)
-	{
-		char *path_cmd;
 
-		expand_in_2darray(&cmd, env);
-		remove_quotes(cmd);
-		path_cmd = get_path(env, cmd[0]);
-		if (!path_cmd)
-		{
-			ft_putstr_fd("minishell: ", 2);
-			ft_putendl_fd(cmd[0], 2);
-			ft_putstr_fd(" ", 2);
-			ft_putstr_fd("command not found", 2);
-			write(2, "\n", 1);
-			exit(127);
-		}
-		else
-		{
-			if (execve(path_cmd, cmd, env) == -1)
+void execute(char **env, char **cmd, t_shell *shell)
+{
+    char *path_cmd;
+    t_cmds cmds; // Declare cmds
+
+  //  printf("Debug: Entering execute\n");
+
+    // Initialize cmds
+    cmds.fd_in = -1;
+    cmds.fd_out = -1;
+
+    // Handle redirections
+    if (handle_redirections(cmd, &cmds, env, shell) == 1)
+    {
+        shell->exit_status = 1;
+     //   printf("Debug: handle_redirections failed\n");
+        return;
+    }
+
+    expand_in_2darray(&cmd, env);
+    remove_quotes(cmd);
+    path_cmd = get_path(env, cmd[0]);
+    if (!path_cmd)
+    {
+        fprintf(stderr, "minishell: %s: command not found\n", cmd[0]);
+        shell->exit_status = 127;
+        //printf("Debug: Command not found, exit_status: %d\n", shell->exit_status);
+        exit(127);
+    }
+    else
+    {
+        if (execve(path_cmd, cmd, env) == -1)
         {
             perror("minishell");
             if (errno == ENOENT)
+            {
+                shell->exit_status = 127;
+              //  printf("Debug: Command not found (ENOENT), exit_status: %d\n", shell->exit_status);
                 exit(127);
+            }
             else
+            {
+                shell->exit_status = 126;
+              //  printf("Debug: Command execution error, exit_status: %d\n", shell->exit_status);
                 exit(126);
+            }
         }
-		}
-	}
+    }
+
+   // printf("Debug: Exiting execute\n");
+}

@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/15 18:45:25 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/18 22:04:27 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/24 22:13:03 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -81,7 +81,7 @@ char	*itoa(int num)
 	return (str);
 }
 
-char *expand_variable(char *str, char **env, t_cmds *cmds)
+char *expand_variable(char *str, char **env, t_shell *shell)
 {
     char *result = ft_strdup("");
     char *temp;
@@ -106,7 +106,7 @@ char *expand_variable(char *str, char **env, t_cmds *cmds)
             i++;
             if (str[i] == '?')
             {
-                temp = ft_itoa(cmds->exit_code);
+                temp = ft_itoa(shell->exit_status);
                 char *new_result = ft_strjoin(result, temp);
                 free(result);
                 free(temp);
@@ -144,7 +144,7 @@ char *expand_variable(char *str, char **env, t_cmds *cmds)
     return result;
 }
 
-void execute_echo(t_cmds *cmds, char **env)
+int execute_echo(t_cmds *cmds, char **env, t_shell *shell)
 {
     int     i;
     int     newline;
@@ -175,7 +175,7 @@ void execute_echo(t_cmds *cmds, char **env)
         if (!first_arg)
             printf(" ");
 
-        expanded_arg = expand_variable(cmds->cmd_args[i], env, cmds);
+        expanded_arg = expand_variable(cmds->cmd_args[i], env, shell);
         char *stripped_arg = strip_quotes(expanded_arg);
         printf("%s", stripped_arg);
         
@@ -193,6 +193,7 @@ void execute_echo(t_cmds *cmds, char **env)
     dup2(original_stdin, 0);
     close(original_stdout);
     close(original_stdin);
+    return 0;
 }
 
 void	print_env(char **env)
@@ -212,23 +213,35 @@ void	print_env(char **env)
 	}
 }
 
-void	pwd(char **env)
+int execute_pwd(char **cmd_args)
 {
-	char	*pwd_value;
-	int		i;
+    char cwd[PATH_MAX];
+    int i = 1;
 
-	pwd_value = NULL;
-	i = -1;
-	while (env[++i] != NULL)
-	{
-		if (strncmp(env[i], "PWD=", 4) == 0)
-		{
-			pwd_value = env[i] + 4;
-			break ;
-		}
-	}
-	if (pwd_value != NULL)
-		printf("%s\n", pwd_value);
-	else
-		fprintf(stderr, "PWD not found in the environment.\n");
+    // Check for invalid options
+    while (cmd_args[i] != NULL)
+    {
+        if (cmd_args[i][0] == '-')
+        {
+            if (strcmp(cmd_args[i], "-L") != 0 && strcmp(cmd_args[i], "-P") != 0)
+            {
+                fprintf(stderr, "pwd: invalid option -- '%c'\n", cmd_args[i][1]);
+                fprintf(stderr, "usage: pwd [-L | -P]\n");
+                return 1;
+            }
+        }
+        i++;
+    }
+
+    // Get and print the current working directory
+    if (getcwd(cwd, PATH_MAX))
+    {
+        printf("%s\n", cwd);
+        return 0;
+    }
+    else
+    {
+        perror("getcwd");
+        return 1;
+    }
 }

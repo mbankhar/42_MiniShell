@@ -6,13 +6,13 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/25 09:35:59 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/18 16:26:43 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/24 20:06:25 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-void do_shit(char **args, t_exec *exec, t_cmds **cmds_ptr, char **env)
+void do_shit(char **args, t_exec *exec, t_cmds **cmds_ptr, char **env, t_shell *shell)
 {
     int     i;
     int     j;
@@ -76,7 +76,7 @@ void do_shit(char **args, t_exec *exec, t_cmds **cmds_ptr, char **env)
             }
             else if (args[i][0] == '<' || args[i][0] == '>')
             {
-                look_for_redirect(args, i, &cmds[k], env);
+                look_for_redirect(args, i, &cmds[k], env, shell);
                 i += 2;
             }
             else
@@ -94,35 +94,33 @@ void do_shit(char **args, t_exec *exec, t_cmds **cmds_ptr, char **env)
     cmds->size = k;
 }
 
-
-
 // Function to remove quotes from a string
-void	remove_quotes(char **args)
+void remove_quotes(char **args)
 {
-	int		i;
-	int		j;
-	int		k;
-	int		length;
-	char	*temp;
+    int i;
+    int j;
+    int k;
+    int length;
+    char *temp;
 
-	if (args == NULL)
-		return ;
-	i = -1;
-	while (args[++i] != NULL)
-	{
-		length = strlen(args[i]);
-		temp = malloc(sizeof(char) * (length + 1));
-		if (temp == NULL)
-			exit(EXIT_FAILURE);
-		k = 0;
-		j = -1;
-		while (++j < length)
-		{
-			if (args[i][j] != '\'' && args[i][j] != '\"')
-				temp[k++] = args[i][j];
-		}
-		temp[k] = '\0';
-		free(args[i]);
-		args[i] = temp;
-	}
+    if (args == NULL)
+        return;
+    i = -1;
+    while (args[++i] != NULL)
+    {
+        length = strlen(args[i]);
+        temp = malloc(sizeof(char) * (length + 1));
+        if (temp == NULL)
+            exit(EXIT_FAILURE);
+        k = 0;
+        j = -1;
+        while (++j < length)
+        {
+            if (args[i][j] != '\'' && args[i][j] != '\"')
+                temp[k++] = args[i][j];
+        }
+        temp[k] = '\0';
+        free(args[i]);
+        args[i] = temp;
+    }
 }

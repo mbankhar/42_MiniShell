@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 11:17:31 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/19 18:50:43 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/24 23:00:37 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,53 +95,57 @@ char	*expand_env_variables(const char *str, char **env)
 }
 
 // Function to handle redirection
-void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env)
+void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env, t_shell *shell)
 {
-	int		fd;
-	char	*file;
-	char	*expanded_file;
+    int fd;
+    char *file;
+    char *expanded_file;
 
-	file = remove_quotess(commands[index + 1]);
-	if (file == NULL)
-		return ;
-	expanded_file = expand_env_variables(file, env);
-	free(file);
-	if (expanded_file == NULL)
-		return ;
-	if (commands[index][0] == '>' && commands[index][1] == '>')
-	{
-		fd = open(expanded_file, O_WRONLY | O_CREAT | O_APPEND, 0644);
-		if (fd == -1)
-		{
-			perror("Failed to open file for appending");
-			g_exit_status = 1;
-		}
-		else
-			cmds->fd_out = fd;
-	}
-	else if (commands[index][0] == '<')
-	{
-		fd = open(expanded_file, O_RDONLY);
-		if (fd == -1)
-		{
-			perror("Failed to open file for reading");
-			g_exit_status = 1;
-
-		}
-		else
-			cmds->fd_in = fd;
-	}
-	else if (commands[index][0] == '>')
-	{
-		fd = open(expanded_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-		if (fd == -1)
-		{
-			perror("Failed to open file for writing");
-			g_exit_status = 1;
-
-		}
-		else
-			cmds->fd_out = fd;
-	}
-	free(expanded_file);
+    file = remove_quotess(commands[index + 1]);
+    if (file == NULL)
+    {
+        shell->exit_status = 1;
+        return;
+    }
+    expanded_file = expand_env_variables(file, env);
+    free(file);
+    if (expanded_file == NULL)
+    {
+        shell->exit_status = 1;
+        return;
+    }
+    if (commands[index][0] == '>' && commands[index][1] == '>')
+    {
+        fd = open(expanded_file, O_WRONLY | O_CREAT | O_APPEND, 0644);
+        if (fd == -1)
+        {
+            perror("Failed to open file for appending");
+            shell->exit_status = 1;
+        }
+        else
+            cmds->fd_out = fd;
+    }
+    else if (commands[index][0] == '<')
+    {
+        fd = open(expanded_file, O_RDONLY);
+        if (fd == -1)
+        {
+            perror(expanded_file);
+            shell->exit_status = 1;
+        }
+        else
+            cmds->fd_in = fd;
+    }
+    else if (commands[index][0] == '>')
+    {
+        fd = open(expanded_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (fd == -1)
+        {
+            perror("Failed to open file for writing");
+            shell->exit_status = 1;
+        }
+        else
+            cmds->fd_out = fd;
+    }
+    free(expanded_file);
 }
