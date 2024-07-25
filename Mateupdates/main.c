@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/24 21:04:20 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/25 12:28:23 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,36 +15,56 @@
 #include <stdio.h>
 #include <string.h>
 
-int	handle_pipe_error(char last)
+int	handle_pipe_error(char last, char *line, int *i)
 {
-	if (last == '|' || last == '\0')
-	{
-		printf("Error: Invalid pipe usage.\n");
-		return (1);
-	}
-	return (0);
+    if (strncmp(line, "echo", 4) == 0 && isspace(line[4]))
+    {
+        int j = 4;
+        while (isspace(line[j]))
+            j++;
+        
+        if (*i >= j)
+            return (0);
+    }
+
+    if (last == '|' || last == '\0')
+    {
+        printf("Error: Invalid pipe usage.\n");
+        return (1);
+    }
+    return (0);
 }
 
 int	handle_output_redirection(char *line, int *i, char last)
 {
-	if (line[*i + 1] == '>')
-	{
-		if (last == '>' || last == '\0')
-		{
-			printf("Error: Invalid append redirection.\n");
-			return (1);
-		}
-		(*i)++;
-	}
-	else
-	{
-		if (last == '>' || last == '\0')
-		{
-			printf("Error: Invalid output redirection.\n");
-			return (1);
-		}
-	}
-	return (0);
+    if (strncmp(line, "echo", 4) == 0 && isspace(line[4]))
+    {
+        int j = 4;
+        while (isspace(line[j]))
+            j++;
+        
+        if (*i >= j)
+            return (0);
+    }
+
+    if (line[*i + 1] == '>')
+    {
+        if (last == '>' || last == '\0')
+        {
+            printf("Error: Invalid append redirection.\n");
+            return (1);
+        }
+        (*i)++;
+    }
+    else
+    {
+        if (last == '>' || last == '\0')
+        {
+            printf("Error: Invalid output redirection.\n");
+            return (1);
+        }
+    }
+    return (0);
 }
 
 int	handle_input_redirection(char *line, int *i, char last)
@@ -83,7 +103,7 @@ int	handle_special_characters(char current, char last_char, int *in_pipe,
 {
 	if (current == '|')
 	{
-		if (handle_pipe_error(last_char))
+		if (handle_pipe_error(last_char, line, i))
 			return (1);
 		*in_pipe = 1;
 	}

@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/24 23:04:25 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/25 12:11:18 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -241,8 +241,33 @@ void execute(char **env, char **cmd, t_shell *shell)
         return;
     }
 
+
+   // Check if the command is empty or $EMPTY
+    if (cmd[0] == NULL || cmd[0][0] == '\0' || strcmp(cmd[0], "$EMPTY") == 0)
+    {
+        // If $EMPTY is followed by another command, shift the command array
+        if (cmd[1] != NULL)
+        {
+            cmd = &cmd[1];
+        }
+        else
+        {
+            shell->exit_status = 0;
+            return;
+        }
+    }
+
     expand_in_2darray(&cmd, env);
     remove_quotes(cmd);
+
+
+     // Check again if the command is empty after expansion and quote removal
+    if (cmd[0] == NULL || cmd[0][0] == '\0')
+    {
+        shell->exit_status = 0;
+        return;
+    }
+    
     path_cmd = get_path(env, cmd[0]);
     if (!path_cmd)
     {
