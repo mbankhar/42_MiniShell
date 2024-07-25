@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/15 18:45:25 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/24 22:13:03 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/25 15:43:09 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -217,21 +217,19 @@ int execute_pwd(char **cmd_args)
 {
     char cwd[PATH_MAX];
     int i = 1;
-
-    // Check for invalid options
-    while (cmd_args[i] != NULL)
+while (cmd_args[i] != NULL)
     {
         if (cmd_args[i][0] == '-')
         {
             if (strcmp(cmd_args[i], "-L") != 0 && strcmp(cmd_args[i], "-P") != 0)
             {
-                fprintf(stderr, "pwd: invalid option -- '%c'\n", cmd_args[i][1]);
-                fprintf(stderr, "usage: pwd [-L | -P]\n");
+                 fprintf(stderr, "pwd: invalid option -- '%c'\n", cmd_args[i][1]);
+                 fprintf(stderr, "\n");
                 return 1;
             }
         }
-        i++;
-    }
+         i++;
+     }
 
     // Get and print the current working directory
     if (getcwd(cwd, PATH_MAX))

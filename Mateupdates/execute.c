@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/25 12:11:18 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/25 15:56:01 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,8 +28,8 @@ int	is_builtin(t_cmds *cmds)
 		return (1);
 	else if (ft_strcmp(cmds[0].cmd_args[0], "env") == 0)
 		return (1);
-	// else if (ft_strcmp(cmds[0].cmd_args[0], "pwd") == 0)
-	// 	return (1);
+	else if (ft_strcmp(cmds[0].cmd_args[0], "pwd") == 0)
+		return (1);
 	else
 		return (0);
 }
@@ -38,11 +38,11 @@ int handle_redirections(char **cmd, t_cmds *cmds, char **env, t_shell *shell)
 {
     int i = 0;
 
-    //printf("Debug: Entering handle_redirections\n");
+  //  printf("Debug: Entering handle_redirections\n");
 
     while (cmd[i] != NULL)
     {
-       // printf("Debug: Processing cmd[%d]: %s\n", i, cmd[i]);
+     //printf("Debug: Processing cmd[%d]: %s\n", i, cmd[i]);
         if (cmd[i][0] == '<' || cmd[i][0] == '>')
         {
             look_for_redirect(cmd, i, cmds, env, shell);
@@ -58,7 +58,7 @@ int handle_redirections(char **cmd, t_cmds *cmds, char **env, t_shell *shell)
         }
     }
 
-  //  printf("Debug: Exiting handle_redirections\n");
+  //printf("Debug: Exiting handle_redirections\n");
     return 0;
 }
 
@@ -111,7 +111,7 @@ int execution(t_cmds *cmds, char ***env, t_shell *shell)
     {
         shell->exit_status = execute_builtin(cmds, env, shell);
         cmds->exit_code = shell->exit_status;
-        //printf("Debug: Builtin command executed, exit_code: %d\n", cmds->exit_code); // Debugging line
+        //Debug: Builtin command executed, exit_code: 0printf("Debug: Builtin command executed, exit_code: %d\n", cmds->exit_code); // Debugging line
         return shell->exit_status;
     }
     else
@@ -227,8 +227,6 @@ void execute(char **env, char **cmd, t_shell *shell)
     char *path_cmd;
     t_cmds cmds; // Declare cmds
 
-  //  printf("Debug: Entering execute\n");
-
     // Initialize cmds
     cmds.fd_in = -1;
     cmds.fd_out = -1;
@@ -237,12 +235,10 @@ void execute(char **env, char **cmd, t_shell *shell)
     if (handle_redirections(cmd, &cmds, env, shell) == 1)
     {
         shell->exit_status = 1;
-     //   printf("Debug: handle_redirections failed\n");
         return;
     }
 
-
-   // Check if the command is empty or $EMPTY
+    // Check if the command is empty or $EMPTY
     if (cmd[0] == NULL || cmd[0][0] == '\0' || strcmp(cmd[0], "$EMPTY") == 0)
     {
         // If $EMPTY is followed by another command, shift the command array
@@ -260,20 +256,18 @@ void execute(char **env, char **cmd, t_shell *shell)
     expand_in_2darray(&cmd, env);
     remove_quotes(cmd);
 
-
-     // Check again if the command is empty after expansion and quote removal
+    // Check again if the command is empty after expansion and quote removal
     if (cmd[0] == NULL || cmd[0][0] == '\0')
     {
         shell->exit_status = 0;
         return;
     }
-    
+
     path_cmd = get_path(env, cmd[0]);
     if (!path_cmd)
     {
         fprintf(stderr, "minishell: %s: command not found\n", cmd[0]);
         shell->exit_status = 127;
-        //printf("Debug: Command not found, exit_status: %d\n", shell->exit_status);
         exit(127);
     }
     else
@@ -284,17 +278,13 @@ void execute(char **env, char **cmd, t_shell *shell)
             if (errno == ENOENT)
             {
                 shell->exit_status = 127;
-              //  printf("Debug: Command not found (ENOENT), exit_status: %d\n", shell->exit_status);
                 exit(127);
             }
             else
             {
                 shell->exit_status = 126;
-              //  printf("Debug: Command execution error, exit_status: %d\n", shell->exit_status);
                 exit(126);
             }
         }
     }
-
-   // printf("Debug: Exiting execute\n");
 }

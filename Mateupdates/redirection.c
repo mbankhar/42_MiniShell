@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 11:17:31 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/24 23:00:37 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/25 12:40:58 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,11 +119,17 @@ void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env, t_s
         fd = open(expanded_file, O_WRONLY | O_CREAT | O_APPEND, 0644);
         if (fd == -1)
         {
-            perror("Failed to open file for appending");
+            perror(expanded_file);
             shell->exit_status = 1;
+            free(expanded_file);
+            return;
         }
         else
+        {
+            if (cmds->fd_out != -1)
+                close(cmds->fd_out);
             cmds->fd_out = fd;
+        }
     }
     else if (commands[index][0] == '<')
     {
@@ -132,20 +138,32 @@ void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env, t_s
         {
             perror(expanded_file);
             shell->exit_status = 1;
+            free(expanded_file);
+            return;
         }
         else
+        {
+            if (cmds->fd_in != -1)
+                close(cmds->fd_in);
             cmds->fd_in = fd;
+        }
     }
     else if (commands[index][0] == '>')
     {
         fd = open(expanded_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
         if (fd == -1)
         {
-            perror("Failed to open file for writing");
+            perror(expanded_file);
             shell->exit_status = 1;
+            free(expanded_file);
+            return;
         }
         else
+        {
+            if (cmds->fd_out != -1)
+                close(cmds->fd_out);
             cmds->fd_out = fd;
+        }
     }
     free(expanded_file);
 }
