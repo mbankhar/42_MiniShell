@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/02 14:13:06 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/24 21:56:22 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/29 13:47:12 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,4 +120,5 @@ char *trim_quotes_and_spaces(char *str);
 int is_valid_identifier(const char *str);
 void remove_env_var(char ***env, const char *var);
 int execute_pwd(char **cmd_args);
+int handle_redirections(char **cmd, t_cmds *cmds, char **env, t_shell *shell);
 #endif

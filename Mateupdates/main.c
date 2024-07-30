@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/11 09:12:26 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/25 12:28:23 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/29 14:59:01 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -190,33 +190,59 @@ void check_the_line(char *line, t_exec *exec, t_cmds *cmds, char ***environ, t_s
 {
     char **args;
 
-    if (are_quotes_even(line) != 0 && !redirection_error_checks(line)
-        && !error_check_on_pipe_and_redirection(line))
+    printf("beginning of the code execution\n");
+
+    // Check for quote balance and redirection errors
+    if (are_quotes_even(line) == 0)
     {
-        exec->number_of_pipes = count_char_occurrences(line, '|');
-        args = ft_splitspecial(line);
-        exec->tokens = get_the_token(args);
-        do_shit(args, exec, &cmds, *environ, shell);
-        cmds->exit_code = 0; // Ensure exit_code is initialized
-        count_commands(cmds, *environ);
-        if (exec->number_of_pipes == cmds->cmd_number
-            && (exec->number_of_pipes != 0))
-            printf("Not nice error\n");
-        else
-            shell->exit_status = execution(cmds, environ, shell);
-     //   printf("Debug: After execution, exit_status: %d\n", shell->exit_status); // Debugging line
-        for (int i = 0; i < exec->number_of_pipes + 1; i++)
+        fprintf(stderr, "Error: Unmatched quotes\n");
+        shell->exit_status = 2;
+        return;
+    }
+
+    if (redirection_error_checks(line) || error_check_on_pipe_and_redirection(line))
+    {
+        fprintf(stderr, "Error: Redirection or pipe syntax error\n");
+        shell->exit_status = 2;
+        return;
+    }
+
+    exec->number_of_pipes = count_char_occurrences(line, '|');
+    args = ft_splitspecial(line);
+    exec->tokens = get_the_token(args);
+    printf("beginning of the code execution\n");
+    do_shit(args, exec, &cmds, *environ, shell);
+    printf("after the code execution\n");
+
+    // Check for redirection errors before executing
+    for (int i = 0; i < exec->number_of_pipes + 1; i++)
+    {
+        if (cmds[i].fd_in == -1)
         {
-            free_heredoc_content(&cmds[i]);
+            perror(cmds[i].cmd_args[0]);
+            shell->exit_status = 1;
+            ft_free(args);
+            return;
         }
-        ft_free(args);
+    }
+
+    cmds->exit_code = 0; // Ensure exit_code is initialized
+    count_commands(cmds, *environ);
+    if (exec->number_of_pipes == cmds->cmd_number && (exec->number_of_pipes != 0))
+    {
+        printf("Not nice error\n");
     }
     else
     {
-     //   printf(" syntax error near unexpected token\n");
-        shell->exit_status = 2; // Set exit status for syntax error
-      //  printf("Debug: Syntax error, exit_status: %d\n", shell->exit_status); // Debugging line
+        shell->exit_status = execution(cmds, environ, shell);
     }
+    for (int i = 0; i < exec->number_of_pipes + 1; i++)
+    {
+        free_heredoc_content(&cmds[i]);
+    }
+    ft_free(args);
+
+    printf("end of the code execution\n");
 }
 
 int		g_variable = 0;
@@ -269,7 +295,6 @@ int main(void)
             {
                 check_the_line(line, &exec, cmds, &environ_copy, &shell);
             }
-           // printf("Debug: After check_the_line, exit_status: %d\n", shell.exit_status); // Debugging line
             ft_free(args);
         }
         free(line);

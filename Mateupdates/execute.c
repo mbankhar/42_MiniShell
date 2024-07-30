@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/12 12:18:10 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/25 15:56:01 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/07/29 13:53:02 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ int	is_builtin(t_cmds *cmds)
 	else
 		return (0);
 }
+
 
 int handle_redirections(char **cmd, t_cmds *cmds, char **env, t_shell *shell)
 {
@@ -232,7 +233,7 @@ void execute(char **env, char **cmd, t_shell *shell)
     cmds.fd_out = -1;
 
     // Handle redirections
-    if (handle_redirections(cmd, &cmds, env, shell) == 1)
+    if (handle_redirections(cmd, &cmds, env , shell) == 1)
     {
         shell->exit_status = 1;
         return;
