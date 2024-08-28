@@ -5,254 +5,102 @@
 /*                                                    +:+ +:+         +:+     */
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/10 10:32:43 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/24 21:45:47 by amohame2         ###   ########.fr       */
+/*   Created: 2024/08/19 12:52:22 by amohame2          #+#    #+#             */
+/*   Updated: 2024/08/27 18:15:37 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
+#include <limits.h>
 
-char	*ft_strcat(char *dest, const char *src)
+static int	handle_special_paths(char **path, char ***env, t_shell *shell)
 {
-	char *dest_start = dest;
-	while (*dest != '\0')
-		dest++;
-	while (*src != '\0')
+	if (*path == NULL || (*path)[0] == '\0')
 	{
-		*dest = *src;
-		dest++;
-		src++;
-	}
-	*dest = '\0';
-	return dest_start;
-}
-
-// Function to copy a string
-
-
-// Function to find the index of an environment variable
-int find_env_index(char **env, const char *var)
-{
-	int i = 0;
-	size_t var_len = strlen(var);
-	while (env[i] != NULL)
-	{
-		if (strncmp(env[i], var, var_len) == 0 && env[i][var_len] == '=')
+		*path = get_home_dir_helper(*env);
+		if (*path == NULL)
 		{
-			return i;
+			ft_putendl_fd("minishell: cd: HOME not set", 2);
+			shell->exit_status = 1;
+			return (1);
 		}
-		i++;
 	}
-	return -1;
+	else if ((*path)[0] == '-' && (*path)[1] == '\0')
+	{
+		*path = find_oldpwd_helper(env);
+		if (*path == NULL)
+		{
+			ft_putendl_fd("minishell: cd: OLDPWD not set", 2);
+			shell->exit_status = 1;
+			return (1);
+		}
+		printf("%s\n", *path);
+	}
+	return (0);
 }
 
-// Function to update an environment variable
-void	update_env_var(char ***env, char *var, char *value)
+static int	update_env_vars(char ***env, char *buffer, t_shell *shell)
 {
-	int var_index = find_env_index(*env, var);
-	size_t var_len = strlen(var);
-	size_t value_len = strlen(value);
-	char *new_var = malloc(var_len + value_len + 2);
-	if (new_var == NULL)
+	update_env_var_helper(env, "OLDPWD", buffer);
+	if (getcwd(buffer, PATH_MAX) == NULL)
 	{
-		perror("malloc");
-		return;
+		perror("getcwd");
+		shell->exit_status = 1;
+		return (1);
 	}
-	ft_strcpy(new_var, var);
-	ft_strcat(new_var, "=");
-	ft_strcat(new_var, value);
-	if (var_index != -1)
-		(*env)[var_index] = new_var;
+	update_env_var_helper(env, "PWD", buffer);
+	return (0);
+}
+
+static int	perform_chdir(char *path, char *expanded_path, t_shell *shell)
+{
+	if (expanded_path != NULL)
+	{
+		if (chdir(expanded_path) == -1)
+		{
+			perror("chdir");
+			shell->exit_status = 1;
+			free(expanded_path);
+			return (1);
+		}
+	}
 	else
 	{
-		int env_len = -1;
-		while ((*env)[++env_len] != NULL)
-			;
-		char **new_env = realloc(*env, (env_len + 2) * sizeof(char *));
-		if (new_env == NULL)
+		if (chdir(path) == -1)
 		{
-			perror("realloc");
-			free(new_var);
-			return;
+			perror("chdir");
+			shell->exit_status = 1;
+			return (1);
 		}
-		*env = new_env;
-		(*env)[env_len] = new_var;
-		(*env)[env_len + 1] = NULL;
 	}
+	return (0);
 }
 
-// Helper function to get the value of OLDPWD
-char *find_oldpwd(char ***env)
+int	change_directory(char *path, char ***env, t_shell *shell)
 {
-	int oldpwd_index = find_env_index(*env, "OLDPWD");
-	if (oldpwd_index == -1)
+	char			buffer[PATH_MAX];
+	char			*expanded_path;
+
+	expanded_path = NULL;
+	if (handle_special_paths(&path, env, shell))
+		return (1);
+	if (path[0] != '\0')
+		expanded_path = expand_env_variables(path, *env);
+	if (getcwd(buffer, sizeof(buffer)) == NULL)
 	{
-		fprintf(stderr, "OLDPWD not set\n");
-		return NULL;
+		perror("getcwd");
+		shell->exit_status = 1;
+		free(expanded_path);
+		return (1);
 	}
-	return ((*env)[oldpwd_index] + 7);
-}
-
-// Helper function to get the value of HOME
-char *get_home_dir(char **env)
-{
-	int home_index = find_env_index(env, "HOME");
-	if (home_index == -1)
+	if (perform_chdir(path, expanded_path, shell))
+		return (1);
+	if (update_env_vars(env, buffer, shell))
 	{
-		fprintf(stderr, "HOME not set\n");
-		return NULL;
+		free(expanded_path);
+		return (1);
 	}
-	return (env[home_index] + 5);
-}
-
-// void change_directory(char *path, char ***env)
-// {
-// 	char	buffer[PATH_MAX];
-
-// 	if (path == NULL || (path[0] == '\0'))
-// 	{
-// 		path = get_home_dir(*env);
-// 		if (path == NULL)
-// 			return ;
-// 	}
-// 	else if (path[0] == '-' && path[1] == '\0')
-// 	{
-// 		path = find_oldpwd(env);
-// 		if (path == NULL)
-// 			return ;
-// 		printf("%s\n", path);
-// 	}
-// 	if (getcwd(buffer, sizeof(buffer)) == NULL)
-// 	{
-// 		perror("getcwd");
-// 		return ;
-// 	}
-// 	update_env_var(env, "OLDPWD", buffer);
-// 	if (chdir(path) == -1)
-// 	{
-// 		perror("chdir");
-// 		return ;
-// 	}
-// 	if (getcwd(buffer, sizeof(buffer)) == NULL)
-// 	{
-// 		perror("getcwd");
-// 		return ;
-// 	}
-// 	update_env_var(env, "PWD", buffer);
-// }
-
-
-// int change_directory(char *path, char ***env, t_shell *shell)
-// {
-//     char buffer[PATH_MAX];
-
-//     if (path == NULL || (path[0] == '\0'))
-//     {
-//         path = get_home_dir(*env);
-//         if (path == NULL)
-//         {
-//             ft_putendl_fd("minishell: cd: HOME not set", 2);
-//             shell->exit_status = 1;
-//             return 1;
-//         }
-//     }
-//     else if (path[0] == '-' && path[1] == '\0')
-//     {
-//         path = find_oldpwd(env);
-//         if (path == NULL)
-//         {
-//             ft_putendl_fd("minishell: cd: OLDPWD not set", 2);
-//             shell->exit_status = 1;
-//             return 1;
-//         }
-//         printf("%s\n", path);
-//     }
-//     if (getcwd(buffer, sizeof(buffer)) == NULL)
-//     {
-//         perror("getcwd");
-//         shell->exit_status = 1;
-//         return 1;
-//     }
-//     if (chdir(path) == -1)
-//     {
-//         perror("chdir");
-//         shell->exit_status = 1;
-//         return 1;
-//     }
-//     update_env_var(env, "OLDPWD", buffer);
-//     if (getcwd(buffer, sizeof(buffer)) == NULL)
-//     {
-//         perror("getcwd");
-//         shell->exit_status = 1;
-//         return 1;
-//     }
-//     update_env_var(env, "PWD", buffer);
-//     shell->exit_status = 0;
-//     return 0;
-// }
-
-
-
-int change_directory(char *path, char ***env, t_shell *shell)
-{
-    char buffer[PATH_MAX];
-    char *expanded_path = NULL;
-
-    if (path == NULL || (path[0] == '\0'))
-    {
-        path = get_home_dir(*env);
-        if (path == NULL)
-        {
-            ft_putendl_fd("minishell: cd: HOME not set", 2);
-            shell->exit_status = 1;
-            return 1;
-        }
-    }
-    else if (path[0] == '-' && path[1] == '\0')
-    {
-        path = find_oldpwd(env);
-        if (path == NULL)
-        {
-            ft_putendl_fd("minishell: cd: OLDPWD not set", 2);
-            shell->exit_status = 1;
-            return 1;
-        }
-        printf("%s\n", path);
-    }
-    else
-    {
-        expanded_path = expand_env_variables(path, *env);
-        path = expanded_path;
-    }
-
-    if (getcwd(buffer, sizeof(buffer)) == NULL)
-    {
-        perror("getcwd");
-        shell->exit_status = 1;
-        if (expanded_path)
-            free(expanded_path);
-        return 1;
-    }
-    if (chdir(path) == -1)
-    {
-        perror("chdir");
-        shell->exit_status = 1;
-        if (expanded_path)
-            free(expanded_path);
-        return 1;
-    }
-    update_env_var(env, "OLDPWD", buffer);
-    if (getcwd(buffer, sizeof(buffer)) == NULL)
-    {
-        perror("getcwd");
-        shell->exit_status = 1;
-        if (expanded_path)
-            free(expanded_path);
-        return 1;
-    }
-    update_env_var(env, "PWD", buffer);
-    shell->exit_status = 0;
-    if (expanded_path)
-        free(expanded_path);
-    return 0;
+	shell->exit_status = 0;
+	free(expanded_path);
+	return (0);
 }

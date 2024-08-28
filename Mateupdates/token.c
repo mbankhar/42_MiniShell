@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   token.c                                            :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/18 12:01:13 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/11 17:09:22 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/08/21 14:42:20 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,57 +14,11 @@
 
 char	**get_the_token(char **commands)
 {
-	int		i;
 	int		cmd_count;
 	char	**filtered_commands;
-	int		skip_next;
-	int		j;
-	int		k;
 
-	i = 0;
-	cmd_count = 0;
-	filtered_commands = NULL;
-	skip_next = 0;
-	while (commands[i])
-	{
-		if (skip_next)
-			skip_next = 0;
-		else if (ft_strcmp(commands[i], "<") == 0 || ft_strcmp(commands[i], ">") == 0)
-			skip_next = 1;
-		else if (ft_strcmp(commands[i], "|") != 0)
-			cmd_count++;
-		i++;
-	}
-	filtered_commands = (char **)malloc((cmd_count + 1) * sizeof(char *));
-	if (!filtered_commands)
-		return (NULL);
-	i = 0;
-	j = 0;
-	skip_next = 0;
-	while (commands[i])
-	{
-		if (skip_next)
-			skip_next = 0;
-		else if (ft_strcmp(commands[i], "<") == 0 || ft_strcmp(commands[i], ">") == 0)
-			skip_next = 1;
-		else if (ft_strcmp(commands[i], "|") != 0)
-		{
-			filtered_commands[j] = ft_strdup(commands[i]);
-			if (!filtered_commands[j])
-			{
-				k = -1;
-				while (++k < j)
-				{
-					free(filtered_commands[k]);
-				}
-				free(filtered_commands);
-				return (NULL);
-			}
-			j++;
-		}
-		i++;
-	}
-	filtered_commands[j] = NULL;
+	cmd_count = count_commands1(commands);
+	filtered_commands = filter_commands(commands, cmd_count);
 	return (filtered_commands);
 }
 
@@ -106,4 +60,3 @@ int	get_token_number(char **tokens, char **env)
 	}
 	return (count);
 }
-

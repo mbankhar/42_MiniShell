@@ -6,7 +6,7 @@
 /*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/10 11:17:31 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/25 12:40:58 by amohame2         ###   ########.fr       */
+/*   Updated: 2024/08/28 16:47:44 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,128 +42,58 @@ char	*remove_quotess(const char *str)
 	return (result);
 }
 
-// Function to get the value of an environment variable from a custom environment
-char *get_custom_env_value(const char *name, char **env)
+void	handle_redirection(char *file, int type, t_cmds *cmds, t_shell *shell)
 {
-	size_t	name_len;
-	int		i;
+	int	fd;
 
-	name_len = ft_strlen(name);
-	i = -1;
-	while (env[++i] != NULL)
+	if (type == 1)
+		fd = open(file, O_WRONLY | O_CREAT | O_APPEND, 0644);
+	else if (type == 2)
+		fd = open(file, O_RDONLY);
+	else
+		fd = open(file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	if (fd == -1)
 	{
-		if (ft_strncmp(env[i], name, name_len) == 0 && env[i][name_len] == '=')
-		{
-			return (env[i] + name_len + 1);
-		}
+		perror(file);
+		shell->exit_status = 1;
 	}
-	return (NULL);
+	else
+	{
+		if (type == 2 && cmds->fd_in != -1)
+			close(cmds->fd_in);
+		else if (cmds->fd_out != -1)
+			close(cmds->fd_out);
+		if (type == 2)
+			cmds->fd_in = fd;
+		else
+			cmds->fd_out = fd;
+	}
 }
 
-// Function to expand environment variables in a string
-char	*expand_env_variables(const char *str, char **env)
+void	look_for_redirect(t_redirect_data *data)
 {
-	size_t		len;
-	char		*result;
-	const char	*start;
-	const char	*dollar;
-	const char	*end;
+	char	*file;
+	char	*expanded_file;
 
-	len = strlen(str);
-	result = malloc(len + 1);
-	if (result == NULL)
-		return (NULL);
-	result[0] = '\0';
-	start = str;
-	while ((dollar = strchr(start, '$')) != NULL)
+	file = remove_quotess(data->commands[data->index + 1]);
+	if (file == NULL)
 	{
-		strncat(result, start, dollar - start);
-		dollar++;
-		end = dollar;
-		while (*end && (isalnum(*end) || *end == '_'))
-			end++;
-		char var_name[128];
-		strncpy(var_name, dollar, end - dollar);
-		var_name[end - dollar] = '\0';
-		char *value = get_custom_env_value(var_name, env);
-		if (value)
-			strcat(result, value);
-		start = end;
+		data->shell->exit_status = 1;
+		return ;
 	}
-	strcat(result, start);
-	return (result);
-}
-
-// Function to handle redirection
-void look_for_redirect(char **commands, int index, t_cmds *cmds, char **env, t_shell *shell)
-{
-    int fd;
-    char *file;
-    char *expanded_file;
-
-    file = remove_quotess(commands[index + 1]);
-    if (file == NULL)
-    {
-        shell->exit_status = 1;
-        return;
-    }
-    expanded_file = expand_env_variables(file, env);
-    free(file);
-    if (expanded_file == NULL)
-    {
-        shell->exit_status = 1;
-        return;
-    }
-    if (commands[index][0] == '>' && commands[index][1] == '>')
-    {
-        fd = open(expanded_file, O_WRONLY | O_CREAT | O_APPEND, 0644);
-        if (fd == -1)
-        {
-            perror(expanded_file);
-            shell->exit_status = 1;
-            free(expanded_file);
-            return;
-        }
-        else
-        {
-            if (cmds->fd_out != -1)
-                close(cmds->fd_out);
-            cmds->fd_out = fd;
-        }
-    }
-    else if (commands[index][0] == '<')
-    {
-        fd = open(expanded_file, O_RDONLY);
-        if (fd == -1)
-        {
-            perror(expanded_file);
-            shell->exit_status = 1;
-            free(expanded_file);
-            return;
-        }
-        else
-        {
-            if (cmds->fd_in != -1)
-                close(cmds->fd_in);
-            cmds->fd_in = fd;
-        }
-    }
-    else if (commands[index][0] == '>')
-    {
-        fd = open(expanded_file, O_WRONLY | O_CREAT | O_TRUNC, 0644);
-        if (fd == -1)
-        {
-            perror(expanded_file);
-            shell->exit_status = 1;
-            free(expanded_file);
-            return;
-        }
-        else
-        {
-            if (cmds->fd_out != -1)
-                close(cmds->fd_out);
-            cmds->fd_out = fd;
-        }
-    }
-    free(expanded_file);
+	expanded_file = expand_env_variables(file, data->env);
+	free(file);
+	if (expanded_file == NULL)
+	{
+		data->shell->exit_status = 1;
+		return ;
+	}
+	if (data->commands[data->index][0] == '>'
+		&& data->commands[data->index][1] == '>')
+		handle_redirection(expanded_file, 1, data->cmds, data->shell);
+	else if (data->commands[data->index][0] == '<')
+		handle_redirection(expanded_file, 2, data->cmds, data->shell);
+	else if (data->commands[data->index][0] == '>')
+		handle_redirection(expanded_file, 3, data->cmds, data->shell);
+	free(expanded_file);
 }

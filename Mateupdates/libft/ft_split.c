@@ -3,21 +3,20 @@
 /*                                                        :::      ::::::::   */
 /*   ft_split.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/03/12 11:42:59 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/15 19:29:56 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/08/28 13:39:03 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "libft.h"
 
-
 static size_t	ft_strlccpy(char *dst, const char *src, size_t dstsize)
 {
-	size_t		y;
-	size_t		i;
-	size_t		src_len;
+	size_t	y;
+	size_t	i;
+	size_t	src_len;
 
 	y = 0;
 	i = 0;
@@ -28,7 +27,7 @@ static size_t	ft_strlccpy(char *dst, const char *src, size_t dstsize)
 	src_len = y;
 	if (dstsize == 0)
 		return (src_len);
-	while (i < dstsize -1 && src[i] != '\0')
+	while (i < dstsize - 1 && src[i] != '\0')
 	{
 		dst[i] = src[i];
 		i++;

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   ft_splitmodif.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/05/06 12:11:23 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/12 15:07:08 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/08/28 13:38:44 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,9 @@ int	ft_strlenmodif(const char *c, int i)
 
 static size_t	ft_strlccpy(char *dst, const char *src, size_t dstsize)
 {
-	size_t		y;
-	size_t		i;
-	size_t		src_len;
+	size_t	y;
+	size_t	i;
+	size_t	src_len;
 
 	y = 0;
 	i = 0;
@@ -40,7 +40,7 @@ static size_t	ft_strlccpy(char *dst, const char *src, size_t dstsize)
 	src_len = y;
 	if (dstsize == 0)
 		return (src_len);
-	while (i < dstsize -1 && src[i] != '\0')
+	while (i < dstsize - 1 && src[i] != '\0')
 	{
 		dst[i] = src[i];
 		i++;
@@ -105,4 +105,3 @@ char	**ft_splitmodif(char const *s, char c)
 	arr[2] = NULL;
 	return (arr);
 }
-

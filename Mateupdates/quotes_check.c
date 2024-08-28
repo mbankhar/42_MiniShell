@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   quotes_check.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/06/16 15:52:31 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/06/28 13:19:08 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/08/27 22:33:34 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,6 @@ int	count_char_occurrences(const char *str, char ch)
 	return (count);
 }
 
-
 int	are_quotes_even(const char *str)
 {
 	int	double_quote_count;
@@ -66,5 +65,5 @@ int	are_quotes_even(const char *str)
 		}
 		str++;
 	}
-	return (double_quote_count % 2 == 0) && (single_quote_count % 2 == 0);
+	return ((double_quote_count % 2 == 0) && (single_quote_count % 2 == 0));
 }

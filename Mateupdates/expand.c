@@ -3,21 +3,21 @@
 /*                                                        :::      ::::::::   */
 /*   expand.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mbankhar <mbankhar@student.42.fr>          +#+  +:+       +#+        */
+/*   By: amohame2 <amohame2@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/09 13:16:57 by mbankhar          #+#    #+#             */
-/*   Updated: 2024/07/11 10:08:08 by mbankhar         ###   ########.fr       */
+/*   Updated: 2024/08/27 20:29:52 by amohame2         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minishell.h"
 
-char *get_env_values(char **env, const char *var)
+char	*get_env_values(char **env, const char *var)
 {
-	size_t var_len;
-	int i;
-	char *env_entry;
-	char *equals_sign;
+	size_t	var_len;
+	int		i;
+	char	*env_entry;
+	char	*equals_sign;
 
 	var_len = ft_strlen(var);
 	i = -1;
@@ -25,54 +25,72 @@ char *get_env_values(char **env, const char *var)
 	{
 		env_entry = env[i];
 		equals_sign = strchr(env_entry, '=');
-		if (equals_sign != NULL && strncmp(env_entry, var, var_len) == 0 && env_entry[var_len] == '=')
+		if (equals_sign != NULL && strncmp(env_entry, var, var_len) == 0
+			&& env_entry[var_len] == '=')
 		{
-			return env_entry + var_len + 1;
+			return (env_entry + var_len + 1);
 		}
 	}
-	return NULL;
+	return (NULL);
 }
 
-void expand_in_2darray(char ***cmd, char **env)
+static void	extract_var_name(char *dollar_pos, char *var_name)
 {
-	int i, j, k;
-	char *str;
-	char *dollar_pos;
-	char var_name[256];
-	char new_str[1024];
-	char *env_value;
-	char *p;
+	int	j;
 
-	for (i = 0; (*cmd)[i] != NULL; i++) {
-		str = (*cmd)[i];
-		dollar_pos = strchr(str, '$');
-		if (dollar_pos != NULL) {
-			dollar_pos++;
-			j = 0;
-			while (*dollar_pos != '\0' && *dollar_pos != ' ' && *dollar_pos != '$' && *dollar_pos != '\"')
+	j = 0;
+	while (*dollar_pos != '\0' && *dollar_pos != ' ' && *dollar_pos != '$'
+		&& *dollar_pos != '\"')
+	{
+		var_name[j++] = *dollar_pos++;
+	}
+	var_name[j] = '\0';
+}
+
+static void	replace_var_with_value(char *str, char *dollar_pos, char *env_value,
+	char *new_str)
+{
+	int		k;
+	char	*p;
+
+	k = 0;
+	p = str;
+	while (*p != '\0' && p != dollar_pos - strlen(env_value) - 1)
+	{
+		new_str[k++] = *p++;
+	}
+	strcpy(new_str + k, env_value);
+	k += strlen(env_value);
+	while (*dollar_pos != '\0')
+	{
+		new_str[k++] = *dollar_pos++;
+	}
+	new_str[k] = '\0';
+}
+
+void	expand_in_2darray(char ***cmd, char **env)
+{
+	t_expand_vars	vars;
+	int				i;
+
+	i = 0;
+	while ((*cmd)[i] != NULL)
+	{
+		vars.str = (*cmd)[i];
+		vars.dollar_pos = strchr(vars.str, '$');
+		if (vars.dollar_pos != NULL)
+		{
+			vars.dollar_pos++;
+			extract_var_name(vars.dollar_pos, vars.var_name);
+			vars.env_value = get_env_values(env, vars.var_name);
+			if (vars.env_value != NULL)
 			{
-				var_name[j++] = *dollar_pos++;
-			}
-			var_name[j] = '\0';
-			env_value = get_env_values(env, var_name);
-			if (env_value != NULL)
-			{
-				k = 0;
-				p = str;
-				while (*p != '\0' && p != dollar_pos - j - 1)
-				{
-					new_str[k++] = *p++;
-				}
-				strcpy(new_str + k, env_value);
-				k += strlen(env_value);
-				while (*dollar_pos != '\0')
-				{
-					new_str[k++] = *dollar_pos++;
-				}
-				new_str[k] = '\0';
+				replace_var_with_value(vars.str, vars.dollar_pos,
+					vars.env_value, vars.new_str);
 				free((*cmd)[i]);
-				(*cmd)[i] = strdup(new_str);
+				(*cmd)[i] = strdup(vars.new_str);
 			}
 		}
+		i++;
 	}
 }
